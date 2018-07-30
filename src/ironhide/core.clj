@@ -289,20 +289,21 @@
        values)
       ctx)))
 
-(defn transform [source-data sink-data mapping [from to]]
-  (reduce
-   (fn [acc {source-path        from
-            sink-path          to
-            :as                rule}]
-     (let [values (get-values source-data source-path)]
-       (if (and values sink-path)
-         (set-values
-          (add-templates source-data acc [source-path sink-path])
-          sink-path
-          values)
-         acc)))
-   sink-data
-   mapping))
+;; (defn transform [source-data sink-data mapping [from to]]
+;;   (reduce
+;;    (fn [acc {source-path        from
+;;             sink-path          to
+;;             :as                rule}]
+;;      (let [values (get-values source-data source-path)]
+;;        (if (and values sink-path)
+;;          (set-values
+;;           (add-templates source-data acc [source-path sink-path])
+;;           sink-path
+;;           values)
+;;          acc)))
+;;    sink-data
+;;    mapping))
+
 
 
 (defn- special? [ns key x]
@@ -316,26 +317,51 @@
 (defn- parser? [x]
   (special? "ihp" :ih/parser))
 
-(defn- microexpand [micromacro values]
-  (let [keys-set (set (keys values))]
-    (sp/transform [(sp/walker #(keys-set %))] values micromacro)))
+(defn- microexpand [micro pelem]
+  (let [values   (if (map? pelem) pelem {})
+        keys-set (set (filter #(not= "ih" (namespace %)) (keys values)))]
+    (sp/transform [(sp/walker #(keys-set %))] values micro)))
 
 ;; (microexpand [:telecom [:%1] :value] {:%1 :*})
 ;; => [:telecom [:*] :value]
 
-;; (defn expand-alias [ctx pelem]
-;;   (let [ (::ih/micro)])
-;;   )
+(defn- pred-from-micro-name [micro-name]
+  (fn [x]
+    (or (and (keyword? x) (= micro-name x))
+        (and (map? x) (m/valid? {:ih/micro micro-name} x)))))
 
+(defn- get-micro-name [pelem]
+  (cond
+    (keyword? pelem) pelem
+    (map? pelem) (:ih/micro pelem)))
 
+(defn- microexpand-path [{micros :ih/micros} path]
+  (reduce
+   (fn [path pelem]
+     (let [micro-name (get-micro-name pelem)
+           micro (get micros micro-name)]
+       ;; (println micro-name micro)
+       (if micro
+         (into path (microexpand micro pelem))
+         (conj path pelem))))
+   []
+   path))
 
-(defn- do-it [{[from to] :ih/direction
-               data      :ih/data
-               micros    :ih/micros
-               :as       ctx}]
-  (let [])
+;; (microexpand-path
+;;  {:ih/micros #:ihm {:name [:name [0]]
+;;                     :given [:given [:ind]]}}
+;;  [:ihm/name {:ih/micro :ihm/given :ind 1}])
+;; => [:name [0] :given [1]]
+
+(defn transform [{micros    :ih/micros
+                  :as       ctx}]
+  (let []
+    (sp/transform
+     [:ih/rules sp/ALL (sp/filterer #(not= "ih" (first %))) 1 1]
+     (fn [path]
+       (microexpand-path ctx path))
+     ctx))
   )
-
 
 (def transformation
   #:ih{:micros #:ihm {:telecom [:telecom [:%1] :value]
@@ -349,14 +375,17 @@
        :direction [:form :fhir]
 
        :rules
-       [{:form        [:name]
+       [{
+         ;; :form        [:name]
          :ih/defaults {:fhir [:ih/values :patient-id]
                        :form [:ih/values :patient-id]}
-         :fhir        [:name]}]})
+         :fhir        [:ihm/name]}]})
 
 
 ;; #spy/p
-;; (transform-once transformation (first (:ih/rules transformation)))
+;; (transform-once transformation (first (:ih/rules transformation))),
 
+;; #spy/p
+;; (transform transformation)
 
 
