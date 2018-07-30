@@ -261,7 +261,9 @@
     (into [:ih/data data] path)))
 
 (defn- transform-once [ctx rule]
-  (let [[from to] (or (:ih/direction rule) (:ih/direction ctx))
+  (let [[from to] (or (:ih/direction rule)
+                      (:ih/direction ctx)
+                      [:data :data])
 
         {source-path from
          sink-path   to} rule
@@ -275,7 +277,7 @@
 
         values (get-values ctx get-path)]
 
-    (if (and values sink-path)
+    (if sink-path
       (set-values
        (add-templates ctx ctx [full-source-path full-sink-path])
        full-sink-path
@@ -296,7 +298,6 @@
          acc)))
    sink-data
    mapping))
-
 
 
 (defn- special? [ns key x]
