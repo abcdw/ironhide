@@ -253,7 +253,8 @@
 ;;   (assoc mapping :parsers (merge default-parsers parsers)))
 
 (defn- ih? [x]
-  (= "ih" (namespace x)))
+  (and (keyword? x)
+       (= "ih" (namespace x))))
 
 (defn- get-full-path [data path]
   (if (ih? (first path))
@@ -273,9 +274,13 @@
 
         default-path (get-in rule [:ih/defaults to])
 
-        get-path (if source-path full-source-path default-path)
+        ;; get-path (if source-path full-source-path default-path)
 
-        values (get-values ctx get-path)]
+        source-values (get-values ctx full-source-path)
+        ;; TODO: write a proper empty-result? fn
+        values        (if (or (m/valid? [[nil]] source-values) (not source-path))
+                        (get-values ctx default-path)
+                        source-values)]
 
     (if sink-path
       (set-values
