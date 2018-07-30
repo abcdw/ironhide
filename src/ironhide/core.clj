@@ -268,29 +268,6 @@
    mapping))
 
 
-(defn- microexpand [micromacro values]
-  (let [keys-set (set (keys values))]
-    (sp/transform [(sp/walker #(keys-set %))] values micromacro)))
-
-;; (microexpand [:telecom [:%1] :value] {:%1 :*})
-;; => [:telecom [:*] :value]
-
-;; (defn expand-alias [ctx pelem]
-;;   (let [ (::ih/micro)])
-;;   )
-
-(sp/setval [(sp/walker #(= :%1 %))] :test [:telecom [:%1] :value])
-
-(sp/setval [sp/BEGINNING] [:test] [1 2 3])
-
-(defn- do-it [{[from to] :ih/direction
-              data      :ih/data
-              micros    :ih/micros
-              :as       ctx}]
-  )
-
-
-;; #spy/p transformation
 
 (defn- special? [ns key x]
   (or
@@ -302,6 +279,27 @@
 
 (defn- parser? [x]
   (special? "ihp" :ih/parser))
+
+(defn- microexpand [micromacro values]
+  (let [keys-set (set (keys values))]
+    (sp/transform [(sp/walker #(keys-set %))] values micromacro)))
+
+;; (microexpand [:telecom [:%1] :value] {:%1 :*})
+;; => [:telecom [:*] :value]
+
+;; (defn expand-alias [ctx pelem]
+;;   (let [ (::ih/micro)])
+;;   )
+
+
+
+(defn- do-it [{[from to] :ih/direction
+               data      :ih/data
+               micros    :ih/micros
+               :as       ctx}]
+  (let [])
+  )
+
 
 (def transformation
   #:ih{:micros #:ihm {:telecom [:telecom [:%1] :value]
