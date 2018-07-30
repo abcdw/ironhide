@@ -252,6 +252,36 @@
 ;; (defn attach-parsers [mapping parsers]
 ;;   (assoc mapping :parsers (merge default-parsers parsers)))
 
+(defn- ih? [x]
+  (= "ih" (namespace x)))
+
+(defn- get-full-path [data path]
+  (if (ih? (first path))
+    path
+    (into [:ih/data data] path)))
+
+(defn- transform-once [ctx rule]
+  (let [[from to] (or (:ih/direction rule) (:ih/direction ctx))
+
+        {source-path from
+         sink-path   to} rule
+
+        full-source-path (get-full-path from source-path)
+        full-sink-path   (get-full-path to sink-path)
+
+        default-path (get-in rule [:ih/defaults to])
+
+        get-path (if source-path full-source-path default-path)
+
+        values (get-values ctx get-path)]
+
+    (if (and values sink-path)
+      (set-values
+       (add-templates ctx ctx [full-source-path full-sink-path])
+       full-sink-path
+       values)
+      ctx)))
+
 (defn transform [source-data sink-data mapping [from to]]
   (reduce
    (fn [acc {source-path        from
@@ -313,8 +343,14 @@
        :direction [:form :fhir]
 
        :rules
-       [{:form        [:name :ihp/str-space]
+       [{:form        [:name]
          :ih/defaults {:fhir [:ih/values :patient-id]
                        :form [:ih/values :patient-id]}
-         :fhir        [:ihm/name]}]})
+         :fhir        [:name]}]})
+
+
+;; #spy/p
+;; (transform-once transformation (first (:ih/rules transformation)))
+
+
 
