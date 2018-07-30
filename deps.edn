@@ -1,16 +1,17 @@
 {:paths ["src"]
- :deps  {org.clojure/clojure {:mvn/version "1.9.0"}
-         com.rpl/specter {:mvn/version "1.1.1"}
+ :deps  {org.clojure/clojure  {:mvn/version "1.9.0"}
+         com.rpl/specter      {:mvn/version "1.1.1"}
          healthsamurai/matcho {:mvn/version "0.1.5"}}
 
  :aliases
  {:nrepl
   {:extra-deps
-   {org.clojure/tools.nrepl       {:mvn/version "0.2.13"}
+   {spyscope                      {:mvn/version "0.1.6"}
+    org.clojure/tools.nrepl       {:mvn/version "0.2.13"}
     cider/cider-nrepl             {:mvn/version "0.18.0-SNAPSHOT"}
     refactor-nrepl/refactor-nrepl {:mvn/version "2.4.0-SNAPSHOT"}}
    :main-opts
-   ["-e" "(require,'cider-nrepl.main)(cider-nrepl.main/init,[\"refactor-nrepl.middleware/wrap-refactor\",\"cider.nrepl/cider-middleware\"])"]}
+   ["-e" "(require,'cider-nrepl.main)(require,'spyscope.core)(cider-nrepl.main/init,[\"refactor-nrepl.middleware/wrap-refactor\",\"cider.nrepl/cider-middleware\"])"]}
 
   :test {:extra-paths ["test"]}
 
