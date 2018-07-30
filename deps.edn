@@ -1,0 +1,21 @@
+{:paths ["src"]
+ :deps  {org.clojure/clojure {:mvn/version "1.9.0"}}
+
+ :aliases
+ {:nrepl
+  {:extra-deps
+   {org.clojure/tools.nrepl       {:mvn/version "0.2.13"}
+    cider/cider-nrepl             {:mvn/version "0.18.0-SNAPSHOT"}
+    refactor-nrepl/refactor-nrepl {:mvn/version "2.4.0-SNAPSHOT"}}
+   :main-opts
+   ["-e" "(require,'cider-nrepl.main)(cider-nrepl.main/init,[\"refactor-nrepl.middleware/wrap-refactor\",\"cider.nrepl/cider-middleware\"])"]}
+
+  :test {:extra-paths ["test"]
+         :extra-deps  {http-kit {:mvn/version "2.3.0"}}}
+
+  :runner
+  {:extra-deps
+   {com.cognitect/test-runner
+    {:git/url "https://github.com/cognitect-labs/test-runner"
+     :sha     "78d380d00e7a27f7b835bb90af37e73b20c49bcc"}}
+   :main-opts ["-m" "cognitect.test-runner" "-d" "test"]}}}
