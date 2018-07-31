@@ -65,9 +65,9 @@
 
 (defmulti get-parser
   "Returns pair of parse/unparse functions"
-  (fn [key & args] key))
+  (fn [key args] key))
 
-(defmethod get-parser :str<->vector [key args]
+(defmethod get-parser :ihp/str<->vector [key args]
   (let [separator (or (first args) " ")]
     [#(if % (cstr/split % (re-pattern separator)) [])
      #(cstr/join separator %)]))
@@ -110,21 +110,48 @@
 ;; (sp/setval [(vec->specter [0] []) 0] :test [])
 ;; => [[:test]]
 
+(defn- ih? [x]
+  (and (keyword? x)
+       (= "ih" (namespace x))))
+
+(defn- special? [ns key x]
+  (or
+   (and (keyword? x) (= ns (namespace x)))
+   (and (map? x) (contains? x key))))
+
+(defn- micro? [x]
+  (special? "ihm" :ih/micro x))
+
+(defn- parser? [x]
+  (special? "ihp" :ih/parser x))
+
+(defn- get-special-name [type pelem]
+  (cond
+    (keyword? pelem) pelem
+    (map? pelem)     (type pelem)))
+
+(defn- get-micro-name [pelem]
+  (get-special-name :ih/micro pelem))
+
+(defn- get-parser-name [pelem]
+  (get-special-name :ih/parser pelem))
+
+(defn- get-args-from-pelem [pelem]
+  (if (map? pelem) (remove ih? pelem) {}))
+
 (defn- get-parser-from-pelem [pelem]
-  (let [parser-name     (:ironhide/parser pelem)
-        args            (:args pelem)
+  (let [parser-name     (get-parser-name pelem)
+        args            (get-args-from-pelem pelem)
         [parse unparse] (get-parser parser-name args)]
     (sp/parser parse unparse)))
 
-(defn- map->specter [pelem]
-  (cond
-    (contains? pelem :ironhide/parser) [(get-parser-from-pelem pelem)]
-    :else [pelem]))
+(defn- parser->specter [pelem]
+  [(get-parser-from-pelem pelem)])
 
 (defn- pelems->specter [pelem next-pelem]
   (cond
     (vector? pelem) (vec->specter pelem next-pelem)
-    (map? pelem) (map->specter pelem)
+    (parser? pelem) (parser->specter pelem)
     (keyword? pelem) [pelem]))
 
 (defn path->sp-path [path]
@@ -252,16 +279,12 @@
 ;; (defn attach-parsers [mapping parsers]
 ;;   (assoc mapping :parsers (merge default-parsers parsers)))
 
-(defn- ih? [x]
-  (and (keyword? x)
-       (= "ih" (namespace x))))
-
 (defn- get-full-path [data path]
   (if (ih? (first path))
     path
     (into [:ih/data data] path)))
 
-(defn- transform-once [ctx rule]
+(defn- apply-rule [ctx rule]
   (let [[from to] (or (:ih/direction rule)
                       (:ih/direction ctx)
                       [:data :data])
@@ -278,6 +301,7 @@
 
         source-values (get-values ctx full-source-path)
         ;; TODO: write a proper empty-result? fn
+
         values        (if (or (m/valid? [[nil]] source-values) (not source-path))
                         (get-values ctx default-path)
                         source-values)]
@@ -305,21 +329,9 @@
 ;;    mapping))
 
 
-
-(defn- special? [ns key x]
-  (or
-   (and (keyword? x) (= ns (namespace x)))
-   (and (map? x) (contains? x key))))
-
-(defn- micro? [x]
-  (special? "ihm" :ih/micro))
-
-(defn- parser? [x]
-  (special? "ihp" :ih/parser))
-
 (defn- microexpand [micro pelem]
-  (let [values   (if (map? pelem) pelem {})
-        keys-set (set (filter #(not= "ih" (namespace %)) (keys values)))]
+  (let [values   (get-args-from-pelem pelem)
+        keys-set (set (remove ih? (keys values)))]
     (sp/transform [(sp/walker #(keys-set %))] values micro)))
 
 ;; (microexpand [:telecom [:%1] :value] {:%1 :*})
@@ -330,17 +342,12 @@
     (or (and (keyword? x) (= micro-name x))
         (and (map? x) (m/valid? {:ih/micro micro-name} x)))))
 
-(defn- get-micro-name [pelem]
-  (cond
-    (keyword? pelem) pelem
-    (map? pelem) (:ih/micro pelem)))
 
 (defn- microexpand-path [{micros :ih/micros} path]
   (reduce
    (fn [path pelem]
      (let [micro-name (get-micro-name pelem)
            micro (get micros micro-name)]
-       ;; (println micro-name micro)
        (if micro
          (into path (microexpand micro pelem))
          (conj path pelem))))
@@ -353,19 +360,32 @@
 ;;  [:ihm/name {:ih/micro :ihm/given :ind 1}])
 ;; => [:name [0] :given [1]]
 
-(defn transform [{micros    :ih/micros
-                  :as       ctx}]
+(defn microexpand-transformer [{micros :ih/micros :as ctx}]
   (let []
     (sp/transform
-     [:ih/rules sp/ALL (sp/filterer #(not= "ih" (first %))) 1 1]
+     [:ih/rules sp/ALL (sp/filterer #(not (ih? (first %)))) 1 1]
      (fn [path]
        (microexpand-path ctx path))
-     ctx))
-  )
+     ctx)))
 
-(def transformation
-  #:ih{:micros #:ihm {:telecom [:telecom [:%1] :value]
-                      :name    [:name [0]]}
+(defn execute [transformer]
+  (let [expanded-transformer (microexpand-transformer transformer)
+        {rules :ih/rules}    expanded-transformer]
+    (reduce
+     (fn [ctx rule]
+       (apply-rule ctx rule))
+     expanded-transformer
+     rules)))
+
+(defn get-data [transformer & [key]]
+  (->
+   (execute transformer)
+   :ih/data
+   (#(get % key %))))
+
+(def transformer
+  #:ih{:micros #:ihm {:telecom    [:telecom [:%1] :value]
+                      :first-name [:name [0] :given [0]]}
 
        :data {:form {:name "Test Name"}
               :fhir {}}
@@ -376,16 +396,17 @@
 
        :rules
        [{
-         ;; :form        [:name]
+         :form        [:name :ihp/str<->vector [0]]
          :ih/defaults {:fhir [:ih/values :patient-id]
                        :form [:ih/values :patient-id]}
-         :fhir        [:ihm/name]}]})
+         :fhir        [:ihm/first-name]}]})
 
 
 ;; #spy/p
 ;; (transform-once transformation (first (:ih/rules transformation))),
 
+;; (println :========)
 ;; #spy/p
-;; (transform transformation)
+;; (get-data transformer :fhir)
 
 
