@@ -8,15 +8,15 @@
 
 ;; Additional features:
 ;; * Leaf update function str split/join
-;; * Default values?
-;; * IDS in templates and default values
+;; * Default values?, IDS in templates and default values
+;; * Filter using value from source
+
+;; * Use maps instead of vectors and convert them to vectors after transformation
+;; {2 {:a :b}} => [nil nil {:a :b}] interesting idea to think about
 ;; * range navigator, take part of the vector by index instead of filter
 ;; * recursive mappings
 ;; * Coercion?
 ;; * Destructuring syntax
-;; * Filter using value from source
-;; * Use maps instead of vectors and convert them to vectors after transformation
-;; {2 {:a :b}} => [nil nil {:a :b}]
 
 ;; Grammar:
 ;; key: keyword
@@ -26,42 +26,11 @@
 ;; vfilter: template
 ;; navigator: (wildcard | index)
 ;; vec: '[' navigator vfilter? ']'
-;; pelem: (key | vec)
+;; pelem: (key | vec | ihmicro | ihparser)
 ;; path: '[' pelem* ']'
 ;;
 ;; Example:
 ;; [:telecom [:* {:system "phone"}] :value]
-
-;; (sp/setval [:a (sp/nil->val {:b :c}) :some-key] sp/NONE {})
-
-;; [{:val    5
-;;   :system "phone"}
-;;  {:val    "mail@mail.com"
-;;   :system "email"}]
-
-;; [{"phone" 5} {"email" "mail@mail.com"}]
-
-;; {:form [:phones]
-;;  :fhir [:telecom]
-;;  :inner [{:form [[0]]
-;;           :fhir [[0 {:system "phone"}] :value]}
-;;          {:form [[1]]
-;;           :fhir [[1 {:system "phone" :use "home"} :value]]}]}
-
-;; {::ih/alias {:telecom [:telecom [:%1] :value]}
-;;  :form {}
-;;  :fhir {}
-;;  ::ih/values {:test "Patient/UUID"} ;; should be attacheable
-;;  ::ih/rules
-;;  [{::ih/transform [[:form :fhir]]}
-;;   {:form [:name {:ironhide/parser :str-space}]
-;;    ::ih/name :patient-id
-;;    ::ih/defaults {:fhir :fhir/patient-id
-;;                   :form :form/patient-id}
-;;    ::ih/default [:name]
-;;    :fhir [{::ih/ref :telecom :args [:*]}]}]}
-
-;; (sp/transform [(sp/walker #(m/valid? {:c :d} %))] #(println %) {:a [:b {:c :d :e :f}]})
 
 (defmulti get-parser
   "Returns pair of parse/unparse functions"
@@ -276,9 +245,6 @@
          rncounts)
         res))))
 
-;; (defn attach-parsers [mapping parsers]
-;;   (assoc mapping :parsers (merge default-parsers parsers)))
-
 (defn- get-full-path [data path]
   (if (ih? (first path))
     path
@@ -297,37 +263,17 @@
 
         default-path (get-in rule [:ih/defaults to])
 
-        ;; get-path (if source-path full-source-path default-path)
-
         source-values (get-values ctx full-source-path)
         ;; TODO: write a proper empty-result? fn
-
         values        (if (or (m/valid? [[nil]] source-values) (not source-path))
                         (get-values ctx default-path)
                         source-values)]
-
     (if sink-path
       (set-values
        (add-templates ctx ctx [full-source-path full-sink-path])
        full-sink-path
        values)
       ctx)))
-
-;; (defn transform [source-data sink-data mapping [from to]]
-;;   (reduce
-;;    (fn [acc {source-path        from
-;;             sink-path          to
-;;             :as                rule}]
-;;      (let [values (get-values source-data source-path)]
-;;        (if (and values sink-path)
-;;          (set-values
-;;           (add-templates source-data acc [source-path sink-path])
-;;           sink-path
-;;           values)
-;;          acc)))
-;;    sink-data
-;;    mapping))
-
 
 (defn- microexpand [micro pelem]
   (let [values   (get-args-from-pelem pelem)
@@ -341,7 +287,6 @@
   (fn [x]
     (or (and (keyword? x) (= micro-name x))
         (and (map? x) (m/valid? {:ih/micro micro-name} x)))))
-
 
 (defn- microexpand-path [{micros :ih/micros} path]
   (reduce
@@ -382,31 +327,4 @@
    (execute transformer)
    :ih/data
    (#(get % key %))))
-
-(def transformer
-  #:ih{:micros #:ihm {:telecom    [:telecom [:%1] :value]
-                      :first-name [:name [0] :given [0]]}
-
-       :data {:form {:name "Test Name"}
-              :fhir {}}
-
-       :values {:patient-id "Patient/UUID"} ;; should be attacheable
-
-       :direction [:form :fhir]
-
-       :rules
-       [{
-         :form        [:name :ihp/str<->vector [0]]
-         :ih/defaults {:fhir [:ih/values :patient-id]
-                       :form [:ih/values :patient-id]}
-         :fhir        [:ihm/first-name]}]})
-
-
-;; #spy/p
-;; (transform-once transformation (first (:ih/rules transformation))),
-
-;; (println :========)
-;; #spy/p
-;; (get-data transformer :fhir)
-
 

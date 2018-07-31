@@ -49,7 +49,7 @@
 
   (matcho/assert
    [[0 {:c 3 :d 4}]]
-   (tf/get-values
+   (get-values
     nested-structure
     [:a :b [:* {:c #(> % 2)}]]))
 
@@ -579,3 +579,31 @@
              {:a {:b [{:c 2 :d 3} {:c 2 :d 4}]}})
 
   (set-values {} [:a {:c 1} [] :v {:d 2} [] :s] :test))
+
+(def transformer
+  #:ih{:micros #:ihm {:telecom    [:telecom [:%1] :value]
+                      :first-name [:name [0] :given [0]]}
+
+       :data {:form {:name "Test Name"}
+              :fhir {}}
+
+       :values {:patient-id "Patient/UUID"} ;; should be attacheable
+
+       :direction [:form :fhir]
+
+       :rules
+       [{
+         :form        [:name :ihp/str<->vector [0]]
+         :ih/defaults {:fhir [:ih/values :patient-id]
+                       :form [:ih/values :patient-id]}
+         :fhir        [:ihm/first-name]}]})
+
+
+;; #spy/p
+;; (transform-once transformation (first (:ih/rules transformation))),
+
+;; (println :========)
+;; #spy/p
+;; (get-data transformer :fhir)
+
+
