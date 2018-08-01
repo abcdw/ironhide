@@ -5,6 +5,86 @@
             [clojure.test :refer :all]))
 
 
+(def update-name-shell
+  #:ih{:direction [:form :form-2]
+
+       :rules [{:form   [:name]
+                :form-2 [:fullname]}]
+       :data  {:form   {:name "Full Name"}
+               :form-2 {:fullname "Old Name"}}})
+
+(get-data update-name-shell)
+;; => {:form {:name "Full Name"}, :form-2 {:fullname "Full Name"}}
+
+(def create-name-shell
+  #:ih{:direction [:form :form-2]
+
+       :rules [{:form   [:name]
+                :form-2 [:fullname]}]
+       :data  {:form   {:name "Full Name"}}})
+
+(get-data create-name-shell)
+;; => {:form {:name "Full Name"}, :form-2 {:fullname "Full Name"}}
+
+(def default-name-shell
+  #:ih{:direction [:form :form-2]
+
+       :values {:person/name "Name not provided by form"}
+       :rules  [{:form        [:name]
+                 :form-2      [:fullname]
+                 :ih/defaults {:form-2 [:ih/values :person/name]}}]
+       :data   {:form   {}
+                :form-2 {:fullname "Old Name"}}})
+
+(get-data default-name-shell)
+;; => {:form {}, :form-2 {:fullname "Name not provided by form"}}
+
+(def create-and-update-phone-shell
+  #:ih{:direction [:form :fhir]
+
+       :rules [{:form [:phones [:*]]
+                :fhir [:telecom [:* {:system "phone"}] :value]}]
+       :data  {:form {:phones ["+1 111" "+2 222"]}
+               :fhir {:telecom [{:system "phone"
+                                 :use    "home"
+                                 :value  "+3 333"}
+                                {:system "email"
+                                 :value  "test@example.com"}]}}})
+
+(get-data create-and-update-phone-shell)
+;; =>
+;; {:form {:phones ["+1 111" "+2 222"]},
+;;  :fhir {:telecom [{:system "phone", :use "home", :value "+1 111"}
+;;                   {:system "email", :value "test@example.com"}
+;;                   {:system "phone", :value "+2 222"}]}}
+
+
+(def sight-name-shell
+  #:ih{:direction [:form :fhir]
+
+       :rules [{:form   [:name :ihs/str<->vector [0]]
+                :fhir [:name [0] :given [0]]}]
+       :data  {:form   {:name "Full Name"}}})
+
+(get-data sight-name-shell)
+;; => {:form {:name "Full Name"}, :fhir {:name [{:given ["Full"]}]}}
+
+(def micro-name-shell
+  #:ih{:direction [:fhir :form] ;; !!!
+
+       :micros #:ihm {:name<->vector [:name {:ih/sight  :ihs/str<->vector
+                                             :separator ", "}]}
+
+       :rules [{:form [:ihm/name<->vector [0]]
+                :fhir [:name [0] :given [0]]}
+               {:form [:ihm/name<->vector [1]]
+                :fhir [:name [0] :family]}]
+       :data  {:form {:name "Full, Name"}
+               :fhir {:name [{:given ["First"] :family "Family"}]}}})
+
+(get-data micro-name-shell :form)
+;; => {:name "First, Family"}
+
 (deftest path->sppath-test
   (matcho/assert
    [[0 :v1]]
