@@ -32,16 +32,16 @@
 ;; Example:
 ;; [:telecom [:* {:system "phone"}] :value]
 
-(defmulti get-parser
+(defmulti get-sight
   "Returns pair of parse/unparse functions"
   (fn [key args] key))
 
-(defmethod get-parser :ihp/str<->vector [key args]
+(defmethod get-sight :ihs/str<->vector [key args]
   (let [separator (or (first args) " ")]
     [#(if % (cstr/split % (re-pattern separator)) [])
      #(cstr/join separator %)]))
 
-(defmethod get-parser :default [key args]
+(defmethod get-sight :default [key args]
   [identity identity])
 
 (defn- wildcard? [pelem]
@@ -64,7 +64,7 @@
 
 (defn- vec->specter [[navigator & [vfilter] :as pelem] next-pelem]
   (let [filter-fn (get-vfilter-fn vfilter)
-        template (vfilter->template vfilter next-pelem)]
+        template  (vfilter->template vfilter next-pelem)]
     [sp/NIL->VECTOR
 
      (if (wildcard? pelem)
@@ -91,8 +91,8 @@
 (defn- micro? [x]
   (special? "ihm" :ih/micro x))
 
-(defn- parser? [x]
-  (special? "ihp" :ih/parser x))
+(defn- sight? [x]
+  (special? "ihs" :ih/sight x))
 
 (defn- get-special-name [type pelem]
   (cond
@@ -102,25 +102,25 @@
 (defn- get-micro-name [pelem]
   (get-special-name :ih/micro pelem))
 
-(defn- get-parser-name [pelem]
-  (get-special-name :ih/parser pelem))
+(defn- get-sight-name [pelem]
+  (get-special-name :ih/sight pelem))
 
 (defn- get-args-from-pelem [pelem]
-  (if (map? pelem) (remove ih? pelem) {}))
+  (if (map? pelem) (into {} (remove #(ih? (first %)) pelem)) {}))
 
-(defn- get-parser-from-pelem [pelem]
-  (let [parser-name     (get-parser-name pelem)
+(defn- get-sight-from-pelem [pelem]
+  (let [sight-name      (get-sight-name pelem)
         args            (get-args-from-pelem pelem)
-        [parse unparse] (get-parser parser-name args)]
+        [parse unparse] (get-sight sight-name args)]
     (sp/parser parse unparse)))
 
-(defn- parser->specter [pelem]
-  [(get-parser-from-pelem pelem)])
+(defn- sight->specter [pelem]
+  [(get-sight-from-pelem pelem)])
 
 (defn- pelems->specter [pelem next-pelem]
   (cond
-    (vector? pelem) (vec->specter pelem next-pelem)
-    (parser? pelem) (parser->specter pelem)
+    (vector? pelem)  (vec->specter pelem next-pelem)
+    (sight? pelem)   (sight->specter pelem)
     (keyword? pelem) [pelem]))
 
 (defn path->sp-path [path]
@@ -295,7 +295,7 @@
   (reduce
    (fn [path pelem]
      (let [micro-name (get-micro-name pelem)
-           micro (get micros micro-name)]
+           micro      (get micros micro-name)]
        (if micro
          (into path (microexpand micro pelem))
          (conj path pelem))))
@@ -308,26 +308,39 @@
 ;;  [:ihm/name {:ih/micro :ihm/given :ind 1}])
 ;; => [:name [0] :given [1]]
 
-(defn microexpand-transformer [{micros :ih/micros :as ctx}]
+(defn microexpand-shell [{micros :ih/micros :as ctx}]
   (let []
     (sp/transform
-     [:ih/rules sp/ALL (sp/filterer #(not (ih? (first %)))) 1 1]
+     [:ih/rules sp/ALL (sp/filterer #(not (ih? (first %)))) sp/ALL 1]
      (fn [path]
        (microexpand-path ctx path))
      ctx)))
 
-(defn execute [transformer]
-  (let [expanded-transformer (microexpand-transformer transformer)
-        {rules :ih/rules}    expanded-transformer]
+(defn execute [shell]
+  (let [expanded-shell    (microexpand-shell shell)
+        {rules :ih/rules} expanded-shell]
     (reduce
      (fn [ctx rule]
        (apply-rule ctx rule))
-     expanded-transformer
+     expanded-shell
      rules)))
 
-(defn get-data [transformer & [key]]
+(defn get-data [shell & [key]]
   (->
-   (execute transformer)
+   (execute shell)
    :ih/data
    (#(get % key %))))
 
+;; (-> {:name "Firstname, Secondname"}
+;;     (get-values [:name :ihp/str<->vector [0]]))
+;; => [["Firstname,"]]
+;; => [[0 {:a :b}] [1 {:k :v}]]
+
+(microexpand-path
+ #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
+ [:ihm/name])
+;; => [:name [:index] :given [0]]
+(microexpand-path
+ #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
+ [{:ih/micro :ihm/name :index 10}])
+;; => [:name [10] :given [0]]
