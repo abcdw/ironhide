@@ -121,7 +121,8 @@ Simple `shell` executed with `get-data`:
 
 ### Bullet
 
-A `bullet` is any leaf value (subtree is also a leaf value).
+A `bullet` is any leaf value (map or vector also can be treated as a leaf
+value).
 
 ### Charge
 
@@ -173,8 +174,10 @@ Example of paths and `get-value` results:
 [:ihm/first-name] ;; => [["Firstname"]]
 ```
 
-`get-values` always returns a vector of addressed `bullet`s. Each `wildcard` inside
-the path creates one dimension of address.
+`get-values` always returns a magazine (vector of addressed) `bullet`s. Each
+`wildcard` inside the path creates one dimension of address.
+
+> Add more info about tricky magazine
 
 ### Sight
 
@@ -211,12 +214,13 @@ Default values for micros not supported yet.
 
 ### Rule
 
-Rule is a map, which can contain few different key types:
+Rule specifies relation between `bullet`s. It is a map, which can contain few
+different key types:
 
-* `charge`, which points to path
-* `:ih/direction`, which points to pair of source and sink `charge`s
-* `:ih/defaults`, which point to map of `charge` keys and path-to-default-value
-  values
+* `charge`, which associated with path to `bullet`
+* `:ih/direction`, which associated with a pair of source and sink `charge`s
+* `:ih/defaults`, which associated with map of `charge` keys and
+  path-to-default-value values
 
 ```clj
 {:form [:firstname]
@@ -258,7 +262,7 @@ Rule is a map, which can contain few different key types:
 ;; => {:form {:name "Full Name"}, :form-2 {:fullname "Full Name"}}
 ```
 
-### Default values
+#### Default values
 
 ```clj
 (def default-name-shell
