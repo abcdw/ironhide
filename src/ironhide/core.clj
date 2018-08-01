@@ -263,12 +263,15 @@
 
         default-path (get-in rule [:ih/defaults to])
 
-        source-values (get-values ctx full-source-path)
+        source-values  (get-values ctx full-source-path)
+        default-values (get-values ctx default-path)
         ;; TODO: write a proper empty-result? fn
-        values        (if (or (m/valid? [[nil]] source-values) (not source-path))
-                        (get-values ctx default-path)
-                        source-values)]
-    (if sink-path
+        values         (if (or (m/valid? [[nil]] source-values) (nil? source-path))
+                         (when-not (or (nil? default-path)
+                                       (m/valid? [[nil]] default-values))
+                           default-values)
+                         source-values)]
+    (if (and values sink-path)
       (set-values
        (add-templates ctx ctx [full-source-path full-sink-path])
        full-sink-path
