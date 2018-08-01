@@ -124,6 +124,12 @@ Simple `shell` executed with `get-data`:
 A `bullet` is any leaf value (map or vector also can be treated as a leaf
 value).
 
+```clj
+;; {:k1 {:k2 :v3}}
+[:k1] ;; => [[{:k2 :v3}]]
+;; {:k2 :v3} is a bullet
+```
+
 ### Charge
 
 A `charge` is logical name (keyword) of the part of subtree inside the `shell`
@@ -131,6 +137,15 @@ most often under the `:ih/data` key.
 
 Source `charge` in `:ih/direction` is used for getting `bullet`s and sink
 `charge` for updating/creating.
+
+```clj
+
+#:ih{:direction [:form :fhir]
+     :data      {:form {:first-name "Firstname"}
+                 :fhir {}}}
+
+;; :form and :fhir are charges
+```
 
 ### Path and pelem
 
@@ -172,12 +187,22 @@ Example of paths and `get-value` results:
 [:name :ihs/str<->vector [0]] ;; => [["Firstname,"]]
 ;; [:name {:ih/sight :ihs/str<->vector :separator ", "} [0]]
 [:ihm/first-name] ;; => [["Firstname"]]
+
+;; [[1 2] [3 4 5]]
 ```
 
 `get-values` always returns a magazine (vector of addressed) `bullet`s. Each
 `wildcard` inside the path creates one dimension of address.
 
-> Add more info about tricky magazine
+```clj
+(get-values
+ [[:v1 :v2] [:v3 :v4 :v5]]
+ [[:*] [:*]])
+;; => [[0 0 :v1] [0 1 :v2] [1 0 :v3] [1 1 :v4] [1 2 :v5]]
+;; the result of get-values is a magazine
+;; 1 2 - is a multi-dimensional address
+;; :v5 is a bullet
+```
 
 ### Sight
 
