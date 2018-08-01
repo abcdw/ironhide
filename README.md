@@ -56,17 +56,17 @@ much harder to keep *f <sup>-1</sup>* in sync with *f*.
 bidirectional data transformation language described by a data structure stored
 in [EDN](https://github.com/edn-format/edn) (you can think about edn like a
 better [JSON](https://json.org/)). `ironhide` still in early stage of
-development, but already covers some practical usecases. It's declarative,
+development, but already covers some practical usecases. It's also declarative,
 bidirectional, data-driven and simple.
 
 Following code in ironhide solves example above:
 
 ```clj
 #:ih{:direction [:fhir :form]
-     :rules     [{:form [:name :ihp/str<->vector [0]]
+     :rules     [{:form [:name :ihs/str<->vector [0]]
                   :fhir [:name [0] :given [0]]}
 
-                 {:form [:name :ihp/str<->vector [1]]
+                 {:form [:name :ihs/str<->vector [1]]
                   :fhir [:name [0] :family]}]}
 ```
 
@@ -75,22 +75,156 @@ simple snippet allows to transform data in both ways out of the box.
 
 ## Usage
 
-Description of the program in ironhide
+### deps and require
 
-### transformer
+`deps.edn`:
 
-### parsers
+```clj
+{healthsamurai/matcho {:mvn/version "RELEASE"}}
+```
 
-### paths
+`hello_world.clj`:
 
-### micros
+```clj
+(ns hello-world.core
+  (:require [ironhide.core :as ih]))
+  
+;; (ih/execute shell)
+;; or
+;; (ih/get-data shell)
+;; (ih/get-data shell :charge1)
+```
+
+## Description 
+
+Main object for `ironhide` is a `shell`. `ironhide` can execute `shell`'s.
+`shell` is a tree datastructure, which contains declaration of transformation
+rules + data itself.
+
+It consists of few main parts:
+
+* `:ih/data` a data for transformation
+* `:ih/values` similar to previous one, but used mostly for default values
+* `:ih/micros` shortcuts for long repetitive pathes in rules
+* `:ih/direction` default transformation direction (rule can define its own)
+* `:ih/rules` vector of transformation rules
+
+Simple `shell` executed with `get-data`:
+
+```clj
+(get-data
+ #:ih{:direction [:form :fhir]
+      :data      {:form {:first-name "Firstname"}
+                  :fhir {}}
+      :rules     [{:form [:first-name]
+                   :fhir [:name [0] :given [0]]}]})
+;; => {:form {:first-name "Firstname"}, :fhir {:name [{:given ["Firstname"]}]}}
+```
+
+### Bullet
+
+A `bullet` is any leaf value (subtree is also a leaf value).
+
+### Charge
+
+A `charge` is name of the part of subtree inside the `shell`, most often placed
+under the `:ih/data` key.
+
+Source `charge` is used for getting `bullet`s and sink `charge` for updating.
+
+### Path and pelem
+
+`Path` is a vector consist of `pelem`s, which describes how to get to
+`bullet`s. Something similar to [XPath](https://en.wikipedia.org/wiki/XPath),
+[JsonPath](http://goessner.net/articles/JsonPath/), but not exactly.
+
+There are few types of `pelem`s:
+
+* `mkey`
+* `vnav`
+* `sight`
+* `micro`
+
+| term      | definition                                                                                    |
+|-----------|-----------------------------------------------------------------------------------------------|
+| `mkey`    | a simple edn `:keyword`, which tells `shell` executor to navigate to specific key in the map. |
+| `vnav`    | a vector, which consists of `vkey` and optional `vfilter`.                                    |
+| `vkey`    | an `index` (some non-negative integer) or wildcard `:*` (keyword).                            |
+| `vfilter` | a map used for pattern matching and templating                                                |
+| `sight`   | `:ihs/` namespaced keyword or `{:ih/sight :ihs/sight-name :arg1 :value1}`         |
+| `micro`   | `:ihm/` namespaced keyword or `{:ih/micro :ihm/micro-name :arg1 :value1}`                     |
+
+Example of paths and `get-value` results: 
+
+```clj
+
+;; {:k1 {:k2 :v3}}
+[:k1] ;; => [[{:k2 :v3}]]
+[:k1 :k2] ;; => [[:v3]]
+
+;; [{:a :b} {:k :v :k1 :v2}]
+[[0]] ;; => [[{:a :b}]]
+[[:*]] ;; => [[0 {:a :b}] [1 {:k :v :k1 :v1}]]
+[[1 {:a :b}]] ;; => [[nil]]
+[[:* {:k :v}]] ;; => [[0 {:k :v :k1 :v1}]]
+
+;; {:name "Firstname, Secondname"}
+[:name :ihs/str<->vector [0]] ;; => [["Firstname,"]]
+;; [:name {:ih/sight :ihs/str<->vector :separator ", "} [0]]
+[:ihm/first-name] ;; => [["Firstname"]]
+```
+
+### Sight
+
+`sight` is a special `pelem`, which allows to percieve `bullet` differently.
+It's useful when you want to treat a string as a vector of words for example:
+
+```clj
+;; {:name "Firstname Secondname"}
+[:name :ihs/str<->vector [0]] ;; => [["Firstname"]]
+```
+
+It allows to navigate inside `bullet` differently and more preciesly, but don't
+change original structure of it.
+
+
+### Micro
+
+`micro` is a parametrized shortcut for part of the path. 
+
+```clj
+(microexpand-path
+ #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
+ [:ihm/name])
+;; => [:name [:index] :given [0]]
+
+(microexpand-path
+ #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
+ [{:ih/micro :ihm/name :index 10}])
+;; => [:name [10] :given [0]]
+```
+
+Default values for micros not supported yet.
+
+
+### rule
+
+Rule is a hashmap, which can contain few different things:
+
+* `name` for data source and `path` to node in it
+* `:ih/direction` specific direction for current rule by datasource names
+* `:ih/defaults` 
+
+
+## Usage
+
 
 ## Thanks
 
 Special thanks to:
 
 * [Nathan Marz](https://github.com/nathanmarz) for [specter](https://github.com/nathanmarz/specter)
-* [Nikolai Ryzhikov](https://github.com/niquola/) for [matcho](https://github.com/healthsamurai/matcho)
+* [Nikolai Ryzhikov](https://github.com/niquola/) for [matcho](https://github.com/healthsamurai/matcho) and [2way](https://github.com/niquola/2way)
 
 
 ## License
