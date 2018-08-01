@@ -37,7 +37,7 @@
   (fn [key args] key))
 
 (defmethod get-sight :ihs/str<->vector [key args]
-  (let [separator (or (first args) " ")]
+  (let [separator (get args :separator " ")]
     [#(if % (cstr/split % (re-pattern separator)) [])
      #(cstr/join separator %)]))
 

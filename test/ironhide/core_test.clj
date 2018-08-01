@@ -98,12 +98,19 @@
   [{:source [:a [:*] [:*]]
     :sink [:b [:* {:d :t1}] :c [:*] :k]}])
 
+(defn transform [source sink rules & [[from to :as direction]]]
+  (-> {:ih/rules rules}
+      (assoc-in [:ih/data (if direction from :source)] source)
+      (assoc-in [:ih/data (if direction to :sink)] sink)
+      (assoc-in [:ih/direction] (or direction [:source :sink]))
+      (get-data (if direction to :sink))))
+
 (deftest nested-collection-transform-test
   (matcho/assert
    {:b [{:c [{:k :v1}] :d :t1}
         {:c [{:k :v2} {:k :v3}] :d :t1}
         {:c [{:k :v44} {:k :v55}] :d :t2}]}
-   (tf/transform ds1 ds2 rules [:source :sink])))
+   (transform ds1 ds2 rules)))
 
 (def ds3
   {:b [{:c [{:k :v11}] :d :t1}
@@ -112,7 +119,7 @@
 (deftest nested-collection-with-create-transform-test
   (matcho/assert
    [[1 2] [3 :v5]]
-   (tf/transform
+   (transform
     [[1 2] [3]]
     [[:v1] [:v4 :v5]]
     [{:source [[:*] [:*]]
@@ -123,7 +130,7 @@
    {:b [{:c [{:k :v1}] :d :t1}
         {:c [{:k :v44} {:k :v55}] :d :t2}
         {:c [{:k :v2} {:k :v3} {:k :v4}] :d :t1}]}
-   (tf/transform ds1 ds3 rules [:source :sink])))
+   (transform ds1 ds3 rules [:source :sink])))
 
 (def ds4
   {:b [{:c [{:k :v11} {:k :v77}] :d :t1}
@@ -160,15 +167,15 @@
 (deftest phone-test
   (matcho/assert
    {:telecom [{:value "+1"} {} {:value "+2"}]}
-   (tf/transform p1 (update p2 :telecom pop) prules1 [:source :sink]))
+   (transform p1 (update p2 :telecom pop) prules1 [:source :sink]))
 
   (matcho/assert
    {:telecom [{:value "+6"} {} {:value "+7"}]}
-   (tf/transform p1 p2 prules2 [:source :sink]))
+   (transform p1 p2 prules2 [:source :sink]))
 
   (matcho/assert
    {:telecom [{:value "+6"} {} {:value "+7"}]}
-   (tf/transform p1 (update-in p2 [:telecom] pop) prules2 [:source :sink])))
+   (transform p1 (update-in p2 [:telecom] pop) prules2 [:source :sink])))
 
 
 (deftest nested-collection-with-restriction-transform-test
@@ -176,11 +183,11 @@
    {:b [{:c [{:k :v1} {:k :v77}] :d :t1}
         {:c [{:k :v2} {:k :v3}] :d :t1}
         {:c [{:k :v44} {:k :v55}] :d :t2}]}
-   (tf/transform ds1 ds4 rules [:source :sink]))
+   (transform ds1 ds4 rules [:source :sink]))
 
   (matcho/assert
    [[1 2 :v3] [3 :v5]]
-   (tf/transform
+   (transform
     [[1 2] [3]]
     [[:v1 :v2 :v3] [:v4 :v5]]
     [{:source [[:*] [:*]]
@@ -249,12 +256,13 @@
 
      {:form [:demographic-patientInfo-dob]
       :fhir [:birthDate]}
-     {:form [:demographic-patientInfo-name {:ironhide/parser :str<->vector
-                                            :args            [" "]} [0]]
+
+     {:form [:demographic-patientInfo-name {:ih/sight  :ihs/str<->vector
+                                            :separator "e"} [0]]
       :fhir [:name [0] :given [0]]}
 
-     {:form [:demographic-patientInfo-name {:ironhide/parser :str<->vector
-                                            :args            [" "]} [1]]
+     {:form [:demographic-patientInfo-name {:ih/sight  :ihs/str<->vector
+                                            :separator "e"} [1]]
       :fhir [:name [0] :family]}
 
      {:form [:demographics-patientInfo-cellPhoneNumber]
@@ -292,12 +300,12 @@
         :id           "a087966b-41c6-450b-a386-106bfaa1bb72"}}]})
 
   (def name-rules
-    [{:form [:demographic-patientInfo-name {:ironhide/parser :str<->vector
-                                            :args            ["e"]} [0]]
+    [{:form [:demographic-patientInfo-name {:ih/sight  :ihs/str<->vector
+                                            :separator "e"} [0]]
       :fhir [:name [0] :given [0]]}
 
-     {:form [:demographic-patientInfo-name {:ironhide/parser :str<->vector
-                                            :args            ["e"]} [1]]
+     {:form [:demographic-patientInfo-name {:ih/sight  :ihs/str<->vector
+                                            :separator "e"} [1]]
       :fhir [:name [0] :family]}])
 
   (testing "Split/join by e"
@@ -324,7 +332,7 @@
        [:fhir :form]))))
 
   ;; #spy/p
-  (tf/transform sample-data {} form-fhir-rules [:form :fhir])
+  ;; (transform sample-data {} form-fhir-rules [:form :fhir])
 
   ;; (tf/transform {:name [{:family "Petrov" :given ["Ivan"]}]}
   ;;               {}
@@ -592,12 +600,25 @@
        :direction [:form :fhir]
 
        :rules
-       [{
-         :form        [:name :ihp/str<->vector [0]]
-         :ih/defaults {:fhir [:ih/values :patient-id]
-                       :form [:ih/values :patient-id]}
-         :fhir        [:ihm/first-name]}]})
+       [{:ih/direction [:sub-form :fhir]
+         :sub-form     [:name :ihp/str<->vector [0]]
+         :ih/defaults  {:fhir [:ih/values :patient-id]}
+         :fhir         [:ihm/first-name]}]})
 
+
+;; #spy/p
+;; (get-data
+;;  #:ih{:direction [:form :fhir]
+;;       :data      {:form {:first-name "Firstname"}
+;;                   :fhir {}}
+;;       :rules     [{:form [:first-name]
+;;                    :fhir [:name [0] :given [0]]}]})
+;; => {:form {:first-name "Firstname"}, :fhir {:name [{:given ["Firstname"]}]}}
+
+;; #spy/p
+;; (json/parse-string
+;;  (json/generate-string transformer)
+;;  true)
 
 ;; #spy/p
 ;; (transform-once transformation (first (:ih/rules transformation))),
