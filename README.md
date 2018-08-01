@@ -75,15 +75,13 @@ simple snippet allows to transform data in both ways out of the box.
 
 ## Usage
 
-### deps and require
-
-`deps.edn`:
+**deps.edn**:
 
 ```clj
 {healthsamurai/matcho {:mvn/version "RELEASE"}}
 ```
 
-`hello_world.clj`:
+**hello_world.clj**:
 
 ```clj
 (ns hello-world.core
@@ -127,10 +125,11 @@ A `bullet` is any leaf value (subtree is also a leaf value).
 
 ### Charge
 
-A `charge` is name of the part of subtree inside the `shell`, most often placed
-under the `:ih/data` key.
+A `charge` is logical name (keyword) of the part of subtree inside the `shell`
+most often under the `:ih/data` key.
 
-Source `charge` is used for getting `bullet`s and sink `charge` for updating.
+Source `charge` in `:ih/direction` is used for getting `bullet`s and sink
+`charge` for updating/creating.
 
 ### Path and pelem
 
@@ -149,7 +148,7 @@ There are few types of `pelem`s:
 |-----------|-----------------------------------------------------------------------------------------------|
 | `mkey`    | a simple edn `:keyword`, which tells `shell` executor to navigate to specific key in the map. |
 | `vnav`    | a vector, which consists of `vkey` and optional `vfilter`.                                    |
-| `vkey`    | an `index` (some non-negative integer) or wildcard `:*` (keyword).                            |
+| `vkey`    | an `index` (some non-negative integer) or `wildcard` `:*` (keyword).                           |
 | `vfilter` | a map used for pattern matching and templating                                                |
 | `sight`   | `:ihs/` namespaced keyword or `{:ih/sight :ihs/sight-name :arg1 :value1}`         |
 | `micro`   | `:ihm/` namespaced keyword or `{:ih/micro :ihm/micro-name :arg1 :value1}`                     |
@@ -173,6 +172,9 @@ Example of paths and `get-value` results:
 ;; [:name {:ih/sight :ihs/str<->vector :separator ", "} [0]]
 [:ihm/first-name] ;; => [["Firstname"]]
 ```
+
+`get-values` always returns a vector of addressed `bullet`s. Each `wildcard` inside
+the path creates one dimension of address.
 
 ### Sight
 
@@ -209,15 +211,20 @@ Default values for micros not supported yet.
 
 ### rule
 
-Rule is a hashmap, which can contain few different things:
+Rule is a map, which can contain few different key types:
 
-* `name` for data source and `path` to node in it
-* `:ih/direction` specific direction for current rule by datasource names
-* `:ih/defaults` 
+* `charge`, which points to path
+* `:ih/direction`, which points to pair of source and sink `charge`s
+* `:ih/defaults`, which point to map of `charge` keys and path-to-default-value
+  values
 
+```clj
+{:form [:firstname]
+ :fhir [:name [0] :given [0]]
 
-## Usage
-
+ :ih/defaults  {:fhir [:ih/values :firstname]}
+ :ih/direction [:form :fhir]}
+```
 
 ## Thanks
 
