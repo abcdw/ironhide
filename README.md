@@ -75,11 +75,11 @@ simple snippet allows to transform data in both ways out of the box.
 
 ## Usage
 
-This section contains examples of ironhide usage with little explanation, to get
-the taste of dsl capabilities, more detailed info provided in
-[Description](#description) section.
+This section contains examples of clojure ironhide interpreter usage with little
+explanation, to get the taste of dsl capabilities. More detailed info provided
+in [Description](#description) section.
 
-Dependecy for **deps.edn**:
+Add to `:deps` in **deps.edn**:
 
 ```clj
 healthsamurai/ironhide {:mvn/version "RELEASE"}
@@ -157,7 +157,7 @@ healthsamurai/ironhide {:mvn/version "RELEASE"}
 ;; => {:form {:name "Full Name"}, :fhir {:name [{:given ["Full"]}]}}
 ```
 
-See [Sight](#sight) section for the explanation.
+See [Sight](#sight) section for the detailed explanation.
 
 ### Update and create if not-exists
 
@@ -206,9 +206,8 @@ See [Sight](#sight) section for the explanation.
 
 ## Description
 
-Main object for `ironhide` is a `shell`. `ironhide` can execute `shell`'s.
 `shell` is a tree datastructure, which contains declaration of transformation
-rules + data itself.
+rules + data itself. `ironhide` interpreter can execute `shell`'s.
 
 It consists of few main parts:
 
@@ -280,7 +279,7 @@ There are few types of `pelem`s:
 | `sight`   | `:ihs/` namespaced keyword or `{:ih/sight :ihs/sight-name :arg1 :value1}`         |
 | `micro`   | `:ihm/` namespaced keyword or `{:ih/micro :ihm/micro-name :arg1 :value1}`                     |
 
-Example of paths and `get-value` results: 
+Example of paths and `get-values` results: 
 
 ```clj
 
@@ -303,7 +302,10 @@ Example of paths and `get-value` results:
 ```
 
 `get-values` always returns a magazine (vector of addressed) `bullet`s. Each
-`wildcard` inside the path creates one dimension of address.
+`wildcard` inside the path creates one dimension of address. Source and sink
+path should have same number of `wildcard`s to make transformation possible.
+`ironhide` interpreter will align the shape automatically (without deleting
+existing data).
 
 ```clj
 (get-values
