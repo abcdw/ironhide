@@ -37,5 +37,5 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
 
-      # run tests!
-- run: clojure -A:test:runner
+        # run tests!
+      - run: clojure -A:test:runner
