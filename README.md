@@ -75,12 +75,14 @@ simple snippet allows to transform data in both ways out of the box.
 
 ## Usage
 
-Example usage of clojure implementation of ironhide.
+This section contains examples of ironhide usage with little explanation, to get
+the taste of dsl capabilities, more detailed info provided in
+[Description](#description) section.
 
-**deps.edn**:
+Dependecy for **deps.edn**:
 
 ```clj
-{healthsamurai/ironhide {:mvn/version "RELEASE"}}
+healthsamurai/ironhide {:mvn/version "RELEASE"}
 ```
 
 **hello_world.clj**:
@@ -93,7 +95,6 @@ Example usage of clojure implementation of ironhide.
 ;; (ih/get-data shell)
 ;; (ih/get-data shell :charge1)
 ```
-
 
 ### Field to field mapping
 
@@ -156,6 +157,8 @@ Example usage of clojure implementation of ironhide.
 ;; => {:form {:name "Full Name"}, :fhir {:name [{:given ["Full"]}]}}
 ```
 
+See [Sight](#sight) section for the explanation.
+
 ### Update and create if not-exists
 
 ```clj
@@ -201,7 +204,7 @@ Example usage of clojure implementation of ironhide.
 ;; => {:name "First, Family"}
 ```
 
-## Description 
+## Description
 
 Main object for `ironhide` is a `shell`. `ironhide` can execute `shell`'s.
 `shell` is a tree datastructure, which contains declaration of transformation
