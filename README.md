@@ -373,6 +373,10 @@ Special thanks to:
 * [Nathan Marz](https://github.com/nathanmarz) for [specter](https://github.com/nathanmarz/specter)
 * [Nikolai Ryzhikov](https://github.com/niquola/) for [matcho](https://github.com/healthsamurai/matcho) and [2way](https://github.com/niquola/2way)
 
+## Contribution
+
+PRs are welcome, but merging are not guaranteed. Create issue or contact
+[abcdw](https://github.com/abcdw) if you need or want.
 
 ## License
 
