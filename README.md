@@ -1,10 +1,10 @@
 <img align="right" src="https://user-images.githubusercontent.com/1218615/43453962-374b7d44-94c4-11e8-83c2-5d9c703fce36.png" width=300/>
 
-# ironhide [![CircleCI](https://circleci.com/gh/HealthSamurai/matcho.svg?style=shield)](https://circleci.com/gh/HealthSamurai/matcho) [![Join gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/healthsamurai/matcho)
+# ironhide [![CircleCI](https://circleci.com/gh/HealthSamurai/ironhide.svg?style=shield)](https://circleci.com/gh/HealthSamurai/ironhide) [![Join gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/healthsamurai/ironhide)
 
 Ironhide, the data transformer.
 
-[![Clojars Project](http://clojars.org/healthsamurai/matcho/latest-version.svg)](http://clojars.org/healthsamurai/matcho)
+[![Clojars Project](http://clojars.org/healthsamurai/ironhide/latest-version.svg)](http://clojars.org/healthsamurai/ironhide)
 
 ## Idea
 
@@ -75,12 +75,12 @@ simple snippet allows to transform data in both ways out of the box.
 
 ## Usage
 
-Examples usage of clojure implementation of ironhide.
+Example usage of clojure implementation of ironhide.
 
 **deps.edn**:
 
 ```clj
-{healthsamurai/matcho {:mvn/version "RELEASE"}}
+{healthsamurai/ironhide {:mvn/version "RELEASE"}}
 ```
 
 **hello_world.clj**:
@@ -111,7 +111,7 @@ Examples usage of clojure implementation of ironhide.
 ```
 
 
-### Create missing field
+### Create missing fields
 
 ```clj
 (def create-name-shell
@@ -178,6 +178,8 @@ Examples usage of clojure implementation of ironhide.
 ;;                   {:system "email", :value "test@example.com"}
 ;;                   {:system "phone", :value "+2 222"}]}}
 ```
+
+<!-- ### Multi-dimensional update -->
 
 ### Micro
 
