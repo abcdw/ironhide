@@ -1,6 +1,6 @@
 (ns ironhide.core-test
   (:require [ironhide.core :as tf :refer :all]
-            [matcho.core :as matcho]
+            [matcho.asserts :as matcho]
             [com.rpl.specter :as sp]
             [clojure.test :refer :all]))
 

@@ -1,7 +1,7 @@
 {:paths ["src"]
  :deps  {org.clojure/clojure  {:mvn/version "1.9.0"}
          com.rpl/specter      {:mvn/version "1.1.1"}
-         healthsamurai/matcho {:mvn/version "0.1.5"}}
+         healthsamurai/matcho {:mvn/version "0.2.0"}}
 
  :aliases
  {:nrepl

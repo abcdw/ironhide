@@ -1,36 +1,40 @@
 (ns ironhide.core
   (:require [com.rpl.specter :as sp]
-            [matcho.core :as m]
             [clojure.string :as cstr]))
 
-;; Ironhide, the data transformer
-;; language agnostic bidirectional data transformation dsl
+(defn- match-recur [errors path x pattern]
+  (cond
+    (and (map? x)
+         (map? pattern))
+    (reduce (fn [errors [k v]]
+              (let [path  (conj path k)
+                    ev (get x k)]
+                (match-recur errors path ev v)))
+            errors pattern)
 
-;; Additional features:
-;; * Leaf update function str split/join
-;; * Default values?, IDS in templates and default values
-;; * Filter using value from source
+    (and (vector? pattern)
+         (seqable? x))
+    (reduce (fn [errors [k v]]
+              (let [path (conj path k)
+                    ev  (nth (vec x) k nil)]
+                (match-recur errors path ev v)))
+            errors
+            (map (fn [x i] [i x]) pattern (range)))
 
-;; * Use maps instead of vectors and convert them to vectors after transformation
-;; {2 {:a :b}} => [nil nil {:a :b}] interesting idea to think about
-;; * range navigator, take part of the vector by index instead of filter
-;; * recursive mappings
-;; * Coercion?
-;; * Destructuring syntax
+    :else (let [err (when-not (= pattern x) {:expected pattern :but x})]
+            (if err
+              (conj errors (assoc err :path path))
+              errors))))
 
-;; Grammar:
-;; key: keyword
-;; index: integer
-;; wildcard: ':*'
-;; template: map // matcho pattern without predicates
-;; vfilter: template
-;; navigator: (wildcard | index)
-;; vec: '[' navigator vfilter? ']'
-;; pelem: (key | vec | ihmicro | ihparser)
-;; path: '[' pelem* ']'
-;;
-;; Example:
-;; [:telecom [:* {:system "phone"}] :value]
+(defn- match*
+  [x & patterns]
+  (reduce (fn [acc pattern] (match-recur acc [] x pattern)) [] patterns))
+
+(defn- m-valid? [pattern x]
+  (if (empty? (match* x pattern))
+    true
+    false))
+
 
 (defmulti get-sight
   "Returns pair of parse/unparse functions"
@@ -45,7 +49,7 @@
   [identity identity])
 
 (defn- wildcard? [pelem]
-  (m/valid? [:*] pelem))
+  (m-valid? [:*] pelem))
 
 (defn- has-wildcards? [path]
   (not-empty (filter wildcard? path)))
@@ -59,7 +63,7 @@
 
 (defn- get-vfilter-fn [vfilter]
   (if vfilter
-    (fn [x] (m/valid? vfilter x))
+    (fn [x] (m-valid? vfilter x))
     (constantly true)))
 
 (defn- vec->specter [[navigator & [vfilter] :as pelem] next-pelem]
@@ -266,9 +270,9 @@
         source-values  (get-values ctx full-source-path)
         default-values (get-values ctx default-path)
         ;; TODO: write a proper empty-result? fn
-        values         (if (or (m/valid? [[nil]] source-values) (nil? source-path))
+        values         (if (or (m-valid? [[nil]] source-values) (nil? source-path))
                          (when-not (or (nil? default-path)
-                                       (m/valid? [[nil]] default-values))
+                                       (m-valid? [[nil]] default-values))
                            default-values)
                          source-values)]
     (if (and values sink-path)
@@ -289,7 +293,7 @@
 (defn- pred-from-micro-name [micro-name]
   (fn [x]
     (or (and (keyword? x) (= micro-name x))
-        (and (map? x) (m/valid? {:ih/micro micro-name} x)))))
+        (and (map? x) (m-valid? {:ih/micro micro-name} x)))))
 
 (defn- microexpand-path [{micros :ih/micros} path]
   (reduce
@@ -344,3 +348,17 @@
  #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
  [{:ih/micro :ihm/name :index 10}])
 ;; => [:name [10] :given [0]]
+
+{:form [:firstname]
+ :fhir [:name [0] :given [0]]
+
+ :ih/defaults  {:fhir [:ih/values :firstname]}
+ :ih/direction [:form :fhir]}
+
+(get-values
+ [[:v1 :v2] [:v3 :v4 :v5]]
+ [[:*] [:*]])
+;; => [[0 0 :v1] [0 1 :v2] [1 0 :v3] [1 1 :v4] [1 2 :v5]]
+;; the result of get-values is a magazine
+;; 1 2 - is a multi-dimensional address
+;; :v5 is a bullet
