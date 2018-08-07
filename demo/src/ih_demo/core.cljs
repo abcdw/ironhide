@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [cljs.reader :refer [read-string]]
             [cljs.pprint]
-            ;; [com.rpl.specter :as sp]
+            [com.rpl.specter :as sp]
             ))
 
 (def init-shell
@@ -99,16 +99,8 @@
     (swap! db assoc-in [sink :value] value)
     (swap! db assoc-in [sink :str] (cljs-pp value))))
 
-(defn prettif-db! [db]
-  ;; (compute-everything! :right :left)
-
-  db
-  ;; (assoc db
-  ;;        :data-str (cljs-pp (read-string data-str))
-  ;;        :rules-str (cljs-pp (read-string rules-str)))
-
-  )
-
+(defn prettify-db [db]
+   (sp/transform [sp/MAP-VALS (sp/collect-one :value) :str] (fn [a _] (cljs-pp a)) db))
 
 (defn input-comp [name label col-cl]
   (fn []
@@ -139,7 +131,8 @@
    [:br]
    [:div.row
     [:div.col-sm-4
-     [:h2 "Ironhide 0.1.3 demo"]]
+     [:h2 [:a {:href "https://github.com/healthsamurai/ironhide"}
+           "Ironhide"] " demo"]]
     [:div.col-sm-8
      [:select.custom-select
       {:on-change #(load-from-template
@@ -162,7 +155,7 @@
     [:div.form-row
      [:div.col-sm-12
       [:a.btn.btn-block.btn-success
-       {:on-click #(print-shell!)} "Prettify"]]
+       {:on-click #(swap! db prettify-db)} "Prettify"]]
      ]]])
 
 (defn ^:export run []
