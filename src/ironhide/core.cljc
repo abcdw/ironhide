@@ -204,7 +204,7 @@
 (defn- add-level-elems [acc path elem ncounts]
   (let [wc?        (wildcard? (last path))
         first-part (butlast path)
-        filter     (if wc? (last (last path)))
+        vfilter-fn    (get-vfilter-fn (if wc? (second (last path))))
 
         insert-path
         (path->sp-path
@@ -214,7 +214,7 @@
         (if wc?
           (concat
            (path->sp-path (butlast path))
-           [(sp/filterer filter)])
+           [(sp/filterer vfilter-fn)])
           path)
 
         insert-fn
