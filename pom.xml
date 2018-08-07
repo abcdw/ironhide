@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>healthsamurai</groupId>
   <artifactId>ironhide</artifactId>
-  <version>0.1.3</version>
+  <version>0.1.4</version>
   <name>ironhide</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
