@@ -132,7 +132,7 @@ healthsamurai/ironhide {:mvn/version "RELEASE"}
 (def default-name-shell
   #:ih{:direction [:form :form-2]
 
-       :values {:person/name "Name not provided by form"}
+       :values {:person/name "Name not provided by the form"}
        :rules  [{:form        [:name]
                  :form-2      [:fullname]
                  :ih/defaults {:form-2 [:ih/values :person/name]}}]
@@ -140,7 +140,7 @@ healthsamurai/ironhide {:mvn/version "RELEASE"}
                 :form-2 {:fullname "Old Name"}}})
 
 (get-data default-name-shell)
-;; => {:form {}, :form-2 {:fullname "Name not provided by form"}}
+;; => {:form {}, :form-2 {:fullname "Name not provided by the form"}}
 ```
 
 ### Sight for string
@@ -203,6 +203,8 @@ See [Sight](#sight) section for the detailed explanation.
 (get-data micro-name-shell :form)
 ;; => {:name "First, Family"}
 ```
+
+Add parametrized micro.
 
 ## Description
 
