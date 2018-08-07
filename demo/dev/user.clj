@@ -3,6 +3,7 @@
 (def nrepl-options
   {:nrepl-port       7890
    :nrepl-middleware ["cider.nrepl/cider-middleware"
+                      "refactor-nrepl.middleware/wrap-refactor"
                       "cemerick.piggieback/wrap-cljs-repl"]})
 
 (def figwheel-options
