@@ -4,6 +4,8 @@
 
 Ironhide, the data transformer.
 
+[-> free online demo <-](https://healthsamurai.github.io/ironhide/)
+
 [![Clojars Project](http://clojars.org/healthsamurai/ironhide/latest-version.svg)](http://clojars.org/healthsamurai/ironhide)
 
 ## Idea
