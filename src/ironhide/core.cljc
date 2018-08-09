@@ -287,7 +287,7 @@
          full-sink-path
          values)
 
-        (not (and (empty-values? value) (nil? value-path)))
+        (and (not (empty-values? value)) (not (nil? value-path)))
         (set-values
          ctx
          full-sink-path
