@@ -19,44 +19,51 @@
   {:sight-for-string init-shell
 
    :field-to-field-mapping
-   #:ih{:direction [:left :right]
+   #:ih {:direction [:left :right]
 
-        :rules [{:left   [:name]
-                 :right [:fullname]}]
-        :data  {:left   {:name "Full Name"}
-                :right {:fullname "Old Name"}}}
+         :rules [{:left  [:name]
+                  :right [:fullname]}]
+         :data  {:left  {:name "Full Name"}
+                 :right {:fullname "Old Name"}}}
 
    :create-name
-   #:ih{:direction [:left :right]
+   #:ih {:direction [:left :right]
 
-        :rules [{:left   [:name]
-                 :right [:fullname]}]
-        :data  {:left {:name "Full Name"}}}
+         :rules [{:left  [:name]
+                  :right [:fullname]}]
+         :data  {:left {:name "Full Name"}}}
+
+   :default-name
+   #:ih {:direction [:left :right]
+         :values    {:default-name "Name not provided"}
+         :rules     [{:ih/value [:default-name]
+                      :right    [:fullname]}]
+         :data      {:left {:name "Full Name"}}}
+
    :update-and-create-phone
+   #:ih {:direction [:left :right]
 
-   #:ih{:direction [:left :right]
-
-        :rules [{:left [:phones [:*]]
-                 :right [:telecom [:* {:system "phone"}] :value]}]
-        :data  {:left {:phones ["+1 111" "+2 222"]}
-                :right {:telecom [{:system "phone"
-                                  :use    "home"
-                                  :value  "+3 333"}
-                                 {:system "email"
-                                  :value  "test@example.com"}]}}}
+         :rules [{:left  [:phones [:*]]
+                  :right [:telecom [:* {:system "phone"}] :value]}]
+         :data  {:left  {:phones ["+1 111" "+2 222"]}
+                 :right {:telecom [{:system "phone"
+                                    :use    "home"
+                                    :value  "+3 333"}
+                                   {:system "email"
+                                    :value  "test@example.com"}]}}}
 
    :micro-example
-   #:ih{:direction [:right :left] ;; !!!
+   #:ih {:direction [:right :left] ;; !!!
 
-        :micros #:ihm {:name<->vector [:name {:ih/sight  :ihs/str<->vector
-                                              :separator ", "}]}
+         :micros #:ihm {:name<->vector [:name {:ih/sight  :ihs/str<->vector
+                                               :separator ", "}]}
 
-        :rules [{:left [:ihm/name<->vector [0]]
-                 :right [:name [0] :given [0]]}
-                {:left [:ihm/name<->vector [1]]
-                 :right [:name [0] :family]}]
-        :data  {:left {:name "Full, Name"}
-                :right {:name [{:given ["First"] :family "Family"}]}}}
+         :rules [{:left  [:ihm/name<->vector [0]]
+                  :right [:name [0] :given [0]]}
+                 {:left  [:ihm/name<->vector [1]]
+                  :right [:name [0] :family]}]
+         :data  {:left  {:name "Full, Name"}
+                 :right {:name [{:given ["First"] :family "Family"}]}}}
    })
 
 (defn cljs-pp [x]
