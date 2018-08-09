@@ -30,9 +30,9 @@
   #:ih{:direction [:form :form-2]
 
        :values {:person/name "Name not provided by form"}
-       :rules  [{:form        [:name]
-                 :form-2      [:fullname]
-                 :ih/defaults {:form-2 [:ih/values :person/name]}}]
+       :rules  [{:form     [:name]
+                 :form-2   [:fullname]
+                 :ih/value {:form-2 [:person/name]}}]
        :data   {:form   {}
                 :form-2 {:fullname "Old Name"}}})
 
@@ -668,22 +668,22 @@
 
   (set-values {} [:a {:c 1} [] :v {:d 2} [] :s] :test))
 
-(def transformer
-  #:ih{:micros #:ihm {:telecom    [:telecom [:%1] :value]
-                      :first-name [:name [0] :given [0]]}
+;; (def transformer
+;;   #:ih{:micros #:ihm {:telecom    [:telecom [:%1] :value]
+;;                       :first-name [:name [0] :given [0]]}
 
-       :data {:form {:name "Test Name"}
-              :fhir {}}
+;;        :data {:form {:name "Test Name"}
+;;               :fhir {}}
 
-       :values {:patient-id "Patient/UUID"} ;; should be attacheable
+;;        :values {:patient-id "Patient/UUID"} ;; should be attacheable
 
-       :direction [:form :fhir]
+;;        :direction [:form :fhir]
 
-       :rules
-       [{:ih/direction [:sub-form :fhir]
-         :sub-form     [:name :ihp/str<->vector [0]]
-         :ih/defaults  {:fhir [:ih/values :patient-id]}
-         :fhir         [:ihm/first-name]}]})
+;;        :rules
+;;        [{:ih/direction [:sub-form :fhir]
+;;          :sub-form     [:name :ihp/str<->vector [0]]
+;;          :ih/defaults  {:fhir [:ih/values :patient-id]}
+;;          :fhir         [:ihm/first-name]}]})
 
 
 ;; #spy/p
@@ -707,4 +707,33 @@
 ;; #spy/p
 ;; (get-data transformer :fhir)
 
+(deftest fill-from-value
+  (matcho/assert
+   {:allergies [{:category "food"
+                 :resourceType "AllergyIntolerance"
+                 :patient {:id "uuid-blblablabla"
+                           :resourceType "Patient"}}]}
+   (->
+    #:ih {:direction [:form :fhir]
+          :data      {:form {:allergies [{:reaction "anemia"
+                                          :category "food"}
+                                         {:category "good"}]}
+                      :fhir {}}
+          :values    {:allergy-rt "AllergyIntolerance"
+                      :patient-rt "Patient"
+                      :patient-id "uuid-blblablabla"
+                      :vector     []}
 
+          :rules [;; {:ih/value {:fhir [:vector]}
+                  ;;  :fhir     [:allergies]}
+                  {:form [:allergies [:*] :category]
+                   :fhir [:allergies [:*] :category]}
+                  {:ih/value {:fhir [:allergy-rt]}
+                   :fhir     [:allergies [:*] :resourceType]}
+                  {:ih/value {:fhir [:patient-id]}
+                   :fhir     [:allergies [:*] :patient :id]}
+                  {:ih/value {:fhir [:patient-rt]}
+                   :fhir     [:allergies [:*] :patient :resourceType]}]}
+    (execute)
+    :ih/data
+    :fhir)))

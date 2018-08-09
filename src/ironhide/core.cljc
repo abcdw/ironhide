@@ -147,14 +147,16 @@
    (into {})))
 
 (defn set-values [data path values]
-  (let [values  (path->value values)
+  (let [values  (if (vector? values)
+                  (path->value values)
+                  values)
         sp-path (path->sp-path path)]
     (sp/transform
      sp-path
      (fn [& v]
        (let [path  (butlast v)
              value (last v)]
-         (get values path value)))
+         (or (values path) value)))
      data)))
 
 (defn- get-templates [path]
@@ -249,10 +251,10 @@
          rncounts)
         res))))
 
-(defn- get-full-path [data path]
+(defn- get-full-path [path & [prefix]]
   (if (ih? (first path))
     path
-    (into [:ih/data data] path)))
+    (into prefix path)))
 
 (defn- apply-rule [ctx rule]
   (let [[from to] (or (:ih/direction rule)
@@ -262,24 +264,37 @@
         {source-path from
          sink-path   to} rule
 
-        full-source-path (get-full-path from source-path)
-        full-sink-path   (get-full-path to sink-path)
+        full-source-path (get-full-path source-path [:ih/data from])
+        full-sink-path   (get-full-path sink-path [:ih/data to])
 
-        default-path (get-in rule [:ih/defaults to])
+        value-path (get-in rule [:ih/value to])
 
-        source-values  (get-values ctx full-source-path)
-        default-values (get-values ctx default-path)
+        full-value-path (get-full-path value-path [:ih/values])
+
+        source-values (get-values ctx full-source-path)
+        value         (get-values ctx full-value-path)
+
         ;; TODO: write a proper empty-result? fn
-        values         (if (or (m-valid? [[nil]] source-values) (nil? source-path))
-                         (when-not (or (nil? default-path)
-                                       (m-valid? [[nil]] default-values))
-                           default-values)
-                         source-values)]
-    (if (and values sink-path)
-      (set-values
-       (add-templates ctx ctx [full-source-path full-sink-path])
-       full-sink-path
-       values)
+        empty-values? (fn [x] (m-valid? [[nil]] x))
+        values        (if (or (empty-values? source-values) (nil? source-path))
+                        nil
+                        source-values)]
+    (if sink-path
+      (cond
+        values
+        (set-values
+         (add-templates ctx ctx [full-source-path full-sink-path])
+         full-sink-path
+         values)
+
+        (not (and (empty-values? value) (nil? value-path)))
+        (set-values
+         ctx
+         full-sink-path
+         (fn [k] (first (first value))))
+
+        :else
+        ctx)
       ctx)))
 
 (defn- microexpand [micro pelem]
@@ -348,12 +363,6 @@
  #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
  [{:ih/micro :ihm/name :index 10}])
 ;; => [:name [10] :given [0]]
-
-{:form [:firstname]
- :fhir [:name [0] :given [0]]
-
- :ih/defaults  {:fhir [:ih/values :firstname]}
- :ih/direction [:form :fhir]}
 
 (get-values
  [[:v1 :v2] [:v3 :v4 :v5]]
