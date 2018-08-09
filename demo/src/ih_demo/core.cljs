@@ -36,7 +36,7 @@
    :default-name
    #:ih {:direction [:left :right]
          :values    {:default-name "Name not provided"}
-         :rules     [{:ih/value [:default-name]
+         :rules     [{:ih/value {:right [:default-name]}
                       :right    [:fullname]}]
          :data      {:left {:name "Full Name"}}}
 
