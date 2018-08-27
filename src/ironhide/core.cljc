@@ -1,5 +1,7 @@
 (ns ironhide.core
   (:require [com.rpl.specter :as sp]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.alpha :as s]
             [clojure.string :as cstr]))
 
 (defn- match-recur [errors path x pattern]
@@ -127,12 +129,26 @@
     (sight? pelem)   (sight->specter pelem)
     (keyword? pelem) [pelem]))
 
-(defn path->sp-path [path]
-  (reduce
-   (fn [acc [pelem next-pelem]]
-     (concat acc (pelems->specter pelem next-pelem)))
-   []
-   (partition 2 1 [nil] path)))
+(s/def ::path sequential?)
+(s/def ::pmode #{:get :set})
+(s/def ::ctx map?)
+
+(s/fdef path->sp-path
+  :args (s/or
+         :less-args #(< (count %) 3)
+         :arg3 (s/cat :ctx ::ctx :path ::path :pmode ::pmode))
+  :ret vector?)
+
+(defn path->sp-path
+  "Generates a specter path from ironhide path"
+  ([path] (path->sp-path {} path :get))
+  ([path pmode] (path->sp-path {} path pmode))
+  ([ctx path pmode]
+   (reduce
+    (fn [acc [pelem next-pelem]]
+      (concat acc (pelems->specter pelem next-pelem)))
+    []
+    (partition 2 1 [nil] path))))
 
 (defn get-values [data path]
   (let [sp-path (path->sp-path path)]
@@ -371,3 +387,6 @@
 ;; the result of get-values is a magazine
 ;; 1 2 - is a multi-dimensional address
 ;; :v5 is a bullet
+
+(when *assert*
+  (stest/instrument))
