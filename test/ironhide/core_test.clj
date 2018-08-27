@@ -1,8 +1,10 @@
 (ns ironhide.core-test
-  (:require [ironhide.core :as tf :refer :all]
-            [matcho.asserts :as matcho]
+  (:require [ironhide.core :refer :all]
+            [matcho.core :as matcho]
             [com.rpl.specter :as sp]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [clj-yaml.core :as yaml]
+            [clojure.java.io :as io]))
 
 
 (def update-name-shell
@@ -120,19 +122,19 @@
 
   (matcho/assert
    [[0 4]]
-   (tf/get-values
+   (get-values
     nested-structure
     [:a :b [:* {:c 3}] :d]))
 
   (matcho/assert
    [[{:c 3 :d 4}]]
-   (tf/get-values
+   (get-values
     nested-structure
     [:a :b [1]]))
 
   (matcho/assert
    [[0 0 "test"] [0 1 :value]]
-   (tf/get-values {:name [{:given ["test" :value]}]} [:name [:*] :given [:*]])))
+   (get-values {:name [{:given ["test" :value]}]} [:name [:*] :given [:*]])))
 
 
 (def ds1
