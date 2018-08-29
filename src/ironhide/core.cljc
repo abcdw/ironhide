@@ -331,8 +331,10 @@
 
 (defn- add-level-elems [ctx path elem ncounts]
   (let [wc?        (wildcard? (last path))
+        ;; FIXME: it always has to be wc, isn't it?
         first-part (butlast path)
-        vfilter-fn    (get-vfilter-fn (if wc? (second (last path))))
+        wcs?       (has-wildcards? first-part) 
+        vfilter-fn (get-vfilter-fn (if wc? (second (last path))))
 
         insert-path
         (path->sp-path
@@ -342,15 +344,17 @@
         select-path
         (if wc?
           (concat
-           (path->sp-path ctx (butlast path))
+           (path->sp-path ctx first-part)
            [(sp/filterer vfilter-fn)])
           path)
 
         insert-fn
-        (into {} (mapv (fn [[& args] ncount]
-                         [(butlast args) (repeat ncount elem)])
-                       (sp/select select-path ctx)
-                       ncounts))]
+        (if wcs?
+          (into {} (mapv (fn [[& args] ncount]
+                           [(butlast args) (repeat ncount elem)])
+                         (sp/select select-path ctx)
+                         ncounts))
+          (fn [x] (repeat (first ncounts) elem)))]
 
     (sp/transform
      [insert-path sp/END]
@@ -479,6 +483,10 @@
    :ih/data
    (#(get % key))))
 
+
+;; TODO: Make value accept one path????
+;; TODO: Default value via sight? case for value -> vector?
+;; TODO: Rename value to fallback?
 
 (when *assert*
   (stest/instrument))

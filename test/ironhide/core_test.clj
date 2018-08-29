@@ -188,7 +188,7 @@
 
 
 (def p1
-  {:phones ["+1" "+2"]
+  {:phones ["+1" "+2" "+3" "+4"]
    :homephone "+6"
    :workphone "+7"})
 
@@ -215,8 +215,12 @@
 
 (deftest phone-test
   (matcho/assert
-   {:telecom [{:value "+1"} {} {:value "+2"}]}
+   {:telecom [{:value "+1"} {} {:value "+2"} {:value "+3"}]}
    (transform p1 (update p2 :telecom pop) prules1 [:source :sink]))
+
+  (matcho/assert
+   {:telecom [{:value "+1"} {} {:value "+2"} {:value "+3"}]}
+   (transform p1 p2 prules1 [:source :sink]))
 
   (matcho/assert
    {:telecom [{:value "+6"} {} {:value "+7"}]}
