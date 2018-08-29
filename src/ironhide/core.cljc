@@ -75,7 +75,7 @@
   :args (s/or
          :less-args (s/coll-of any? :max-count 2)
          :arg3 (s/cat :ctx map? :path ::path :pmode ::pmode))
-  :ret vector?)
+  :ret sequential?)
 
 ;; =============================================================================
 
@@ -120,25 +120,70 @@
     false))
 
 
-(defmulti get-sight
-  "Returns pair of parse/unparse functions"
-  (fn [key args] key))
+;; =============================================================================
+;; sights
 
-(defmethod get-sight :ihs/str<->vector [key args]
+(defmulti get-global-sight
+  "Returns pair of parse/unparse functions"
+  (fn [key args & [ctx]] key))
+
+(defmethod get-global-sight :ihs/str<->vector [key args & [ctx]]
   (let [separator (get args :separator " ")]
     [#(if % (cstr/split % (re-pattern separator)) [])
      #(cstr/join separator %)]))
 
-(defmethod get-sight :default [key args]
-  [identity identity])
+(defn- get-scoped-sight [{{sights :sights} :ih/internals :as ctx} key args]
+  (if (contains? sights key)
+    (key sights)
+    (get-global-sight key args ctx)))
+
+(defn- inverse-shell [shell]
+  ;; TODO: move to specter
+  (update shell :ih/direction reverse))
+
+(declare get-data)
+
+(defn- transform [shell left right & direction]
+  (let [[from to :as dir] (or direction
+                              (:ih/direction shell)
+                              [:left :right])]
+    (->
+     shell
+     (assoc-in [:ih/data from] left)
+     (assoc-in [:ih/data to] right)
+     (assoc-in [:ih/direction] dir)
+     (get-data to))))
+
+(defn- get-transformer [shell]
+  (fn [data]
+    (transform shell data nil)))
+
+(defn- get-inverse-transformer [shell]
+  (get-transformer (update shell :ih/direction reverse)))
+
+(defn- inverse-map [m]
+  (into {} (map (comp vec reverse) m)))
+
+(defn- get-nested-sight-from-map [m]
+  (if (contains? m :ih/rules)
+    [(get-transformer m) (get-inverse-transformer m)]
+    [m (inverse-map m)]))
+
+(defn- add-nested-sights [shell]
+  (assoc-in shell [:ih/internals :sights]
+            (sp/transform [sp/MAP-VALS]
+                          get-nested-sight-from-map
+                          (get-in shell [:ih/sights]))))
+
+;; =============================================================================
+
+(def ^:private ALL-INDEXED [sp/INDEXED-VALS (sp/collect-one 0) 1])
 
 (defn- wildcard? [pelem]
   (m-valid? [:*] pelem))
 
 (defn- has-wildcards? [path]
   (not-empty (filter wildcard? path)))
-
-(def ^:private ALL-INDEXED [sp/INDEXED-VALS (sp/collect-one 0) 1])
 
 (defn- vfilter->template [vfilter next-pelem]
   (if vfilter
@@ -181,26 +226,26 @@
 (defn- get-args-from-pelem [pelem]
   (if (map? pelem) (into {} (remove #(ih? (first %)) pelem)) {}))
 
-(defn- get-sight-from-pelem [pelem]
+(defn- get-sight-from-pelem [ctx pelem]
   (let [sight-name      (get-sight-name pelem)
         args            (get-args-from-pelem pelem)
-        [parse unparse] (get-sight sight-name args)]
+        [parse unparse] (get-scoped-sight ctx sight-name args)]
     (sp/parser parse unparse)))
 
-(defn- sight->specter [pelem]
-  [(get-sight-from-pelem pelem)])
+(defn- sight->specter [ctx pelem]
+  [(get-sight-from-pelem ctx pelem)])
 
 (defn- pelems->specter [ctx pelem next-pelem mode]
   (let [a :a]
     (condp s/valid? pelem
       ::vnav  (vec->specter pelem next-pelem)
-      ::sight (sight->specter pelem)
+      ::sight (sight->specter ctx pelem)
       ::mkey  [pelem])))
 
 (defn path->sp-path
   "Generates a specter path from ironhide path"
-  ([path] (path->sp-path {} path :set))
-  ([path pmode] (path->sp-path {} path pmode))
+  ([path] (path->sp-path {} path))
+  ([ctx path] (path->sp-path ctx path :set))
   ([ctx path pmode]
    (reduce
     (fn [acc [pelem next-pelem]]
@@ -208,11 +253,11 @@
     []
     (partition 2 1 [nil] path))))
 
-(defn get-values [data path]
-  (let [sp-path (path->sp-path path)]
+(defn get-values [ctx path]
+  (let [sp-path (path->sp-path ctx path)]
     (if (has-wildcards? path)
-      (sp/select sp-path data)
-      [(sp/select sp-path data)])))
+      (sp/select sp-path ctx)
+      [(sp/select sp-path ctx)])))
 
 (defn- path->value [values]
   (->>
@@ -220,11 +265,11 @@
      [(butlast value) (last value)])
    (into {})))
 
-(defn set-values [data path values]
+(defn set-values [ctx path values]
   (let [values  (if (vector? values)
                   (path->value values)
                   values)
-        sp-path (path->sp-path path)]
+        sp-path (path->sp-path ctx path)]
     (sp/transform
      sp-path
      (fn [& v]
@@ -235,7 +280,7 @@
                   (map? old-value))
            (deep-merge old-value new-value)
            (or new-value old-value))))
-     data)))
+     ctx)))
 
 (defn- get-templates [path]
   (for [[[_ vfilter] next-pelem]
@@ -260,20 +305,20 @@
 ;; (splitcat-by-wildcard [[:*] :a :b [:*] :v])
 ;; => [[[:*]] [[:*] :a :b [:*]]]
 
-(defn- counting-sp-path [path]
+(defn- counting-sp-path [ctx path]
   (let [[_ vfilter] (last path)]
     (concat
-     (path->sp-path (butlast path))
+     (path->sp-path ctx (butlast path))
      (if vfilter [(sp/filterer (get-vfilter-fn vfilter))] []))))
 
-(defn- count-matched-nodes [data path]
-  (let [res (sp/select (counting-sp-path path) data)]
+(defn- count-matched-nodes [ctx path]
+  (let [res (sp/select (counting-sp-path ctx path) ctx)]
     (if (has-wildcards? (butlast path))
       (mapv #(count (last %)) res)
       [(count (first res))])))
 
-(defn- tree-shape [data path]
-  (map #(count-matched-nodes data %)
+(defn- tree-shape [ctx path]
+  (map #(count-matched-nodes ctx %)
        (splitcat-by-wildcard path)))
 
 (defn- count-shape-diff [source-shape sink-shape]
@@ -281,33 +326,34 @@
        source-shape
        sink-shape))
 
-(defn- add-level-elems [acc path elem ncounts]
+(defn- add-level-elems [ctx path elem ncounts]
   (let [wc?        (wildcard? (last path))
         first-part (butlast path)
         vfilter-fn    (get-vfilter-fn (if wc? (second (last path))))
 
         insert-path
         (path->sp-path
+         ctx
          (if wc? first-part path))
 
         select-path
         (if wc?
           (concat
-           (path->sp-path (butlast path))
+           (path->sp-path ctx (butlast path))
            [(sp/filterer vfilter-fn)])
           path)
 
         insert-fn
         (into {} (mapv (fn [[& args] ncount]
                          [(butlast args) (repeat ncount elem)])
-                       (sp/select select-path acc)
+                       (sp/select select-path ctx)
                        ncounts))]
 
     (sp/transform
      [insert-path sp/END]
      (fn [& args]
        (insert-fn (butlast args)))
-     acc)))
+     ctx)))
 
 (defn- add-templates [source-data sink-data [source-path sink-path]]
   (let [diff (count-shape-diff
@@ -414,7 +460,9 @@
      ctx)))
 
 (defn execute [shell]
-  (let [expanded-shell    (microexpand-shell shell)
+  (let [expanded-shell    (-> shell
+                              microexpand-shell
+                              add-nested-sights)
         {rules :ih/rules} expanded-shell]
     (reduce
      (fn [ctx rule]

@@ -420,6 +420,40 @@
     :ih/data
     :fhir)))
 
+(deftest nested-mapping-test
+  (matcho/assert
+   {:name [{:given  ["firstname"]
+            :family "secondname"}]}
+   (->
+    #:ih {:direction [:left :right]
+          :sights    #:ihs {:name<->fhir-name
+                            #:ih {:direction [:form :fhir]
+                                  :rules     [{:form [:first]
+                                               :fhir [:given [0]]}
+                                              {:form [:last]
+                                               :fhir [:family]}]}}
+          :data      {:left {:first "firstname" :last "secondname"}}
+          :rules     [{:left  [:ihs/name<->fhir-name]
+                       :right [:name [0]]}]}
+    execute
+    :ih/data
+    :right)))
+
+(deftest copy-less-elements-than-in-right-test
+  (is true "TODO: Uncomment and fix test")
+  ;; (matcho/assert
+  ;;  [{:val 1} ^:matcho/strict {}]
+  ;;  (->
+  ;;   #:ih{:direction [:left :right]
+  ;;        :data      {:left  [1]
+  ;;                    :right [{} {}]}
+  ;;        :rules     [{:left  [[:*]]
+  ;;                     :right [[:*] :val]}]}
+  ;;   execute
+  ;;   :ih/data
+  ;;   :right))
+  )
+
 (deftest fill-from-value
   (matcho/assert
    {:allergies [{:category "food"
