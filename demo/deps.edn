@@ -1,11 +1,11 @@
 {:deps {org.clojure/clojurescript {:mvn/version "1.10.339"}
-        healthsamurai/ironhide    {:mvn/version "0.2.3"}
+        healthsamurai/ironhide    {:mvn/version "0.3.1"}
         reagent                   {:mvn/version "0.8.1"}}
  :aliases
  {:nrepl {:main-opts ["-e" "(require,'cider-nrepl.main)(require,'spyscope.core)(cider-nrepl.main/init,[\"refactor-nrepl.middleware/wrap-refactor\",\"cider.nrepl/cider-middleware\"])"]
           :extra-deps
           { ;; Figwheel ClojureScript REPL
-           spyscope                      {:mvn/version "0.1.6"}
+           spyscope                {:mvn/version "0.1.6"}
            com.cemerick/piggieback {:mvn/version "0.2.2"
                                     :exclusions  [com.google.javascript/closure-compiler]}
            figwheel-sidecar        {:mvn/version "0.5.14"

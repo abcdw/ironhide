@@ -64,6 +64,27 @@
                   :right [:name [0] :family]}]
          :data  {:left  {:name "Full, Name"}
                  :right {:name [{:given ["First"] :family "Family"}]}}}
+
+   :nested-sights
+   #:ih {:direction [:left :right]
+         :sights    #:ihs {:name<->fhir-name
+                           #:ih {:direction [:form :fhir]
+                                 :rules     [{:form [:first]
+                                              :fhir [:given [0]]}
+                                             {:form [:last]
+                                              :fhir [:family]}]}
+
+                           :gender<->fhir-gender
+                           {"Male"   "male"
+                            "Female" "female"
+                            "Other"  "other"}}
+
+         :data  {:left {:first  "firstname" :last "secondname"
+                        :gender "Male"}}
+         :rules [{:left  [:ihs/name<->fhir-name]
+                  :right [:name [0]]}
+                 {:left  [:gender :ihs/gender<->fhir-gender]
+                  :right [:gender]}]}
    })
 
 (defn cljs-pp [x]
