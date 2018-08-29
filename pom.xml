@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>healthsamurai</groupId>
   <artifactId>ironhide</artifactId>
-  <version>0.2.2</version>
+  <version>0.2.3</version>
   <name>ironhide</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -16,7 +16,7 @@
   <repositories>
     <repository>
       <id>clojars</id>
-      <url>https://repo.clojars.org/</url>
+      <url>https://clojars.org/repo</url>
     </repository>
   </repositories>
   <distributionManagement>
@@ -43,6 +43,11 @@
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <version>1.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>orchestra</groupId>
+      <artifactId>orchestra</artifactId>
+      <version>2018.08.19-1</version>
     </dependency>
     <dependency>
       <groupId>com.rpl</groupId>
