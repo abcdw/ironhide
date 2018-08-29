@@ -1,19 +1,9 @@
 (ns ironhide.core
   (:require [com.rpl.specter :as sp]
-            [clojure.spec.test.alpha :as stest]
+            #?(:cljs [orchestra-cljs.spec.test :as stest]
+               :clj [orchestra.spec.test :as stest])
             [clojure.spec.alpha :as s]
             [clojure.string :as cstr]))
-
-
-(s/fdef execute
-  :args (s/cat :shell ::shell)
-  :ret ::shell)
-
-(s/fdef path->sp-path
-  :args (s/or
-         :less-args (s/coll-of any? :max-count 2)
-         :arg3 (s/cat :ctx map? :path ::path :pmode ::pmode))
-  :ret vector?)
 
 
 (s/def ::shell
@@ -33,9 +23,9 @@
                :min-count 2
                :max-count 3))
 
-(s/def :ih/value ::charge->path)
 (s/def ::charge->path
   (s/map-of ::charge ::path))
+(s/def :ih/value ::charge->path)
 
 (s/def ::charge keyword?)
 
@@ -45,6 +35,7 @@
                      :sight ::sight
                      :vnav ::vnav))
 (s/def ::mkey keyword?)
+(declare sight?)
 (s/def ::sight sight?)
 (s/def ::vnav
   (s/cat :vkey ::vkey :vfilter (s/? ::vfilter)))
@@ -54,6 +45,16 @@
 (s/def ::wildcard #(= :* %))
 (s/def ::index nat-int?)
 (s/def ::vfilter map?)
+
+(s/fdef execute
+  :args (s/cat :shell ::shell)
+  :ret ::shell)
+
+(s/fdef path->sp-path
+  :args (s/or
+         :less-args (s/coll-of any? :max-count 2)
+         :arg3 (s/cat :ctx map? :path ::path :pmode ::pmode))
+  :ret vector?)
 
 
 (defn- deep-merge [a b]
