@@ -334,6 +334,10 @@ It's useful when you want to treat a string as a vector of words for example:
 It allows to navigate inside `bullet` differently and more preciesly, but don't
 change original structure of it.
 
+It's possible to extend sights by [defining](./src/ironhide/core.cljc#L133)
+`ironhide.core/get-global-sight` method or using
+[nested](./test/ironhide/core_test.clj#L424) sights.
+
 
 ### Micro
 
