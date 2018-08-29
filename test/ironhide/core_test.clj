@@ -1,9 +1,10 @@
 (ns ironhide.core-test
-  (:require [ironhide.core :refer :all]
+  (:require [ironhide.core :refer :all :as ih]
             [matcho.core :as matcho]
             [com.rpl.specter :as sp]
             [clojure.test :refer :all]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.spec.alpha :as s]))
 
 (def update-name-shell
   #:ih{:direction [:form :form-2]
@@ -422,8 +423,9 @@
 
 (deftest nested-mapping-test
   (matcho/assert
-   {:name [{:given  ["firstname"]
-            :family "secondname"}]}
+   {:name   [{:given  ["firstname"]
+              :family "secondname"}]
+    :gender "male"}
    (->
     #:ih {:direction [:left :right]
           :sights    #:ihs {:name<->fhir-name
@@ -431,13 +433,26 @@
                                   :rules     [{:form [:first]
                                                :fhir [:given [0]]}
                                               {:form [:last]
-                                               :fhir [:family]}]}}
-          :data      {:left {:first "firstname" :last "secondname"}}
-          :rules     [{:left  [:ihs/name<->fhir-name]
-                       :right [:name [0]]}]}
+                                               :fhir [:family]}]}
+
+                            :gender<->fhir-gender
+                            {"Male"   "male"
+                             "Female" "female"
+                             "Other"  "other"}}
+
+          :data  {:left {:first  "firstname" :last "secondname"
+                         :gender "Male"}}
+          :rules [{:left  [:ihs/name<->fhir-name]
+                   :right [:name [0]]}
+                  {:left  [:gender :ihs/gender<->fhir-gender]
+                   :right [:gender]}]}
     execute
     :ih/data
     :right)))
+
+(deftest wrong-shell-test
+  (is (not (s/valid? ::ih/shell #:ih {:rules [{}]}))))
+
 
 (deftest copy-less-elements-than-in-right-test
   (is true "TODO: Uncomment and fix test")
