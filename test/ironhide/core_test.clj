@@ -485,38 +485,3 @@
     :ih/data
     :fhir
     )))
-
-:patient-shell
-:patient-mrn-shell
-:name-shell
-:practitioner-shell
-
-{:patients []
- :practitoners []}
-[:patient-shell :practitioner-shell]
-
-(->
- #:ih {:direction [:left :right]
-
-       :values {:default-name "Name not provided"
-                :types [1]}
-       :rules  [{:left [:allergies [:*]]
-                 :right [:my-allergies [:*]]
-                 ;; :ih/nested-shell [:name :id] :form<->fhir-allergy
-                 }
-
-                ;; [:form :intermediate :fhir]
-                ;; [:form :intermediate]
-                ;; [:intermediate :fhir]
-
-                {:ih/value {:right [:default-name]}
-                 :left [:ih/values :types [:*]]
-                 :right    [:my-allergies [:*] :type]}
-                ]
-
-       :data {:left {:allergies [{:reaction "animea"} {:reaction "other"}]}
-              :right {:allergies [{} {} {:type "super"}]}
-              }}
- execute
- :ih/data
- :right)
