@@ -5,13 +5,35 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as cstr]))
 
+;; =============================================================================
+;; specs
+
+(defn- ih? [x]
+  (and (keyword? x)
+       (= "ih" (namespace x))))
+
+(defn- special? [ns key x]
+  (or
+   (and (keyword? x) (= ns (namespace x)))
+   (and (map? x) (contains? x key))))
+
+(defn- micro? [x]
+  (special? "ihm" :ih/micro x))
+
+(defn- sight? [x]
+  (special? "ihs" :ih/sight x))
 
 (s/def ::shell
   (s/keys :req [:ih/rules :ih/direction]
           :opt [:ih/data :ih/sights :ih/micros :ih/values]))
 
-(s/def :ih/direction (s/cat :from ::charge :to ::charge))
 (s/def :ih/rules (s/coll-of ::rule))
+(s/def :ih/direction (s/cat :from ::charge :to ::charge))
+(s/def :ih/sights (s/map-of #(= "ihs" (namespace %)) ::nested-sight))
+
+(s/def ::nested-sight
+  (s/or :shell ::shell
+        :map map?))
 
 (s/def ::rule (s/coll-of
                (s/or
@@ -35,7 +57,6 @@
                      :sight ::sight
                      :vnav ::vnav))
 (s/def ::mkey keyword?)
-(declare sight?)
 (s/def ::sight sight?)
 (s/def ::vnav
   (s/cat :vkey ::vkey :vfilter (s/? ::vfilter)))
@@ -56,6 +77,7 @@
          :arg3 (s/cat :ctx map? :path ::path :pmode ::pmode))
   :ret vector?)
 
+;; =============================================================================
 
 (defn- deep-merge [a b]
   (if (and
@@ -144,21 +166,6 @@
 
 ;; (sp/setval [(vec->specter [0] []) 0] :test [])
 ;; => [[:test]]
-
-(defn- ih? [x]
-  (and (keyword? x)
-       (= "ih" (namespace x))))
-
-(defn- special? [ns key x]
-  (or
-   (and (keyword? x) (= ns (namespace x)))
-   (and (map? x) (contains? x key))))
-
-(defn- micro? [x]
-  (special? "ihm" :ih/micro x))
-
-(defn- sight? [x]
-  (special? "ihs" :ih/sight x))
 
 (defn- get-special-name [type pelem]
   (cond
