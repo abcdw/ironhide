@@ -375,7 +375,7 @@
   (->
    (execute shell)
    :ih/data
-   (#(get % key %))))
+   (#(get % key))))
 
 ;; (-> {:name "Firstname, Secondname"}
 ;;     (get-values [:name :ihp/str<->vector [0]]))
