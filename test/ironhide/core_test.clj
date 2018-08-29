@@ -405,6 +405,22 @@
     :gender    "Male"}
    (transform sample-data {} form-fhir-rules [:form :fhir])))
 
+(deftest merge-instead-of-replace-test
+  (matcho/assert
+   {:a :b
+    :c :d}
+   (->
+    #:ih {:direction [:form :fhir]
+          :values {:test {:c :d}}
+          :data {:form {:a :b}
+                 :fhir {}}
+          :rules [{:form []
+                   :fhir []}
+                  {:ih/value {:fhir [:test]}
+                   :fhir []}]}
+    execute
+    :ih/data
+    :fhir)))
 
 (deftest fill-from-value
   (matcho/assert

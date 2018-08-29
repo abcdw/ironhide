@@ -171,8 +171,12 @@
      sp-path
      (fn [& v]
        (let [path  (butlast v)
-             value (last v)]
-         (or (values path) value)))
+             new-value (values path)
+             old-value (last v)]
+         (if (and (map? new-value)
+                  (map? old-value))
+           (merge old-value new-value)
+           (or new-value old-value))))
      data)))
 
 (defn- get-templates [path]
