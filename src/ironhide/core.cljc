@@ -476,27 +476,6 @@
    :ih/data
    (#(get % key))))
 
-;; (-> {:name "Firstname, Secondname"}
-;;     (get-values [:name :ihp/str<->vector [0]]))
-;; => [["Firstname,"]]
-;; => [[0 {:a :b}] [1 {:k :v}]]
-
-(microexpand-path
- #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
- [:ihm/name])
-;; => [:name [:index] :given [0]]
-(microexpand-path
- #:ih{:micros #:ihm {:name [:name [:index] :given [0]]}}
- [{:ih/micro :ihm/name :index 10}])
-;; => [:name [10] :given [0]]
-
-(get-values
- [[:v1 :v2] [:v3 :v4 :v5]]
- [[:*] [:*]])
-;; => [[0 0 :v1] [0 1 :v2] [1 0 :v3] [1 1 :v4] [1 2 :v5]]
-;; the result of get-values is a magazine
-;; 1 2 - is a multi-dimensional address
-;; :v5 is a bullet
 
 (when *assert*
   (stest/instrument))
