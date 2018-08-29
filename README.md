@@ -75,6 +75,8 @@ Following code in ironhide solves example above:
 The direction of transformation controlled by `:ih/direction` key and this
 simple snippet allows to transform data in both ways out of the box.
 
+Full grammar defined using `clojure.spec` in [core](./src/ironhide/core.cljc#L26) namespace.
+
 ## Usage
 
 This section contains examples of clojure ironhide interpreter usage with little
@@ -283,6 +285,8 @@ There are few types of `pelem`s:
 | `sight`   | `:ihs/` namespaced keyword or `{:ih/sight :ihs/sight-name :arg1 :value1}`         |
 | `micro`   | `:ihm/` namespaced keyword or `{:ih/micro :ihm/micro-name :arg1 :value1}`                     |
 
+Full grammar defined in [core](./src/ironhide/core.cljc#L26) namespace.
+
 Example of paths and `get-values` results: 
 
 ```clj
@@ -385,7 +389,7 @@ Special thanks to:
 
 ## Contribution
 
-PRs are welcome, but merging are not guaranteed. Create issue or contact
+PRs are welcome, but merging not guaranteed. Create issue or contact
 [abcdw](https://github.com/abcdw) if you need or want.
 
 ## License
