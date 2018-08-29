@@ -4,6 +4,13 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as cstr]))
 
+(defn- deep-merge [a b]
+  (if (and
+       (map? a)
+       (map? b))
+    (merge-with deep-merge a b)
+    b))
+
 (defn- match-recur [errors path x pattern]
   (cond
     (and (map? x)
@@ -175,7 +182,7 @@
              old-value (last v)]
          (if (and (map? new-value)
                   (map? old-value))
-           (merge old-value new-value)
+           (deep-merge old-value new-value)
            (or new-value old-value))))
      data)))
 
