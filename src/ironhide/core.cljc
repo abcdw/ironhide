@@ -31,9 +31,12 @@
 (s/def :ih/direction (s/cat :from ::charge :to ::charge))
 (s/def :ih/sights (s/map-of #(= "ihs" (namespace %)) ::nested-sight))
 
+(s/def ::map-sight
+  #(and (map? %) (= (count %) (count (set (vals %))))))
+
 (s/def ::nested-sight
   (s/or :shell ::shell
-        :map map?))
+        :map ::map-sight))
 
 (s/def ::rule (s/coll-of
                (s/or
