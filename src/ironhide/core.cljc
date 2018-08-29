@@ -4,6 +4,58 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as cstr]))
 
+
+(s/fdef execute
+  :args (s/cat :shell ::shell)
+  :ret ::shell)
+
+(s/fdef path->sp-path
+  :args (s/or
+         :less-args (s/coll-of any? :max-count 2)
+         :arg3 (s/cat :ctx map? :path ::path :pmode ::pmode))
+  :ret vector?)
+
+
+(s/def ::shell
+  (s/keys :req [:ih/rules :ih/direction]
+          :opt [:ih/data :ih/sights :ih/micros :ih/values]))
+
+(s/def :ih/direction (s/cat :from ::charge :to ::charge))
+(s/def :ih/rules (s/coll-of ::rule))
+
+(s/def ::rule (s/coll-of
+               (s/or
+                :charge
+                (s/tuple ::charge ::path)
+                :ih/value
+                (s/tuple #(= :ih/value %) ::charge->path))
+               :into []
+               :min-count 2
+               :max-count 3))
+
+(s/def :ih/value ::charge->path)
+(s/def ::charge->path
+  (s/map-of ::charge ::path))
+
+(s/def ::charge keyword?)
+
+(s/def ::pmode #{:get :set})
+(s/def ::path (s/coll-of ::pelem))
+(s/def ::pelem (s/or :mkey ::mkey
+                     :sight ::sight
+                     :vnav ::vnav))
+(s/def ::mkey keyword?)
+(s/def ::sight sight?)
+(s/def ::vnav
+  (s/cat :vkey ::vkey :vfilter (s/? ::vfilter)))
+
+(s/def ::vkey (s/or :index ::index
+                    :wildcard ::wildcard))
+(s/def ::wildcard #(= :* %))
+(s/def ::index nat-int?)
+(s/def ::vfilter map?)
+
+
 (defn- deep-merge [a b]
   (if (and
        (map? a)
@@ -130,30 +182,21 @@
 (defn- sight->specter [pelem]
   [(get-sight-from-pelem pelem)])
 
-(defn- pelems->specter [pelem next-pelem]
-  (cond
-    (vector? pelem)  (vec->specter pelem next-pelem)
-    (sight? pelem)   (sight->specter pelem)
-    (keyword? pelem) [pelem]))
-
-(s/def ::path sequential?)
-(s/def ::pmode #{:get :set})
-(s/def ::ctx map?)
-
-(s/fdef path->sp-path
-  :args (s/or
-         :less-args #(< (count %) 3)
-         :arg3 (s/cat :ctx ::ctx :path ::path :pmode ::pmode))
-  :ret vector?)
+(defn- pelems->specter [ctx pelem next-pelem mode]
+  (let [a :a]
+    (condp s/valid? pelem
+      ::vnav  (vec->specter pelem next-pelem)
+      ::sight (sight->specter pelem)
+      ::mkey  [pelem])))
 
 (defn path->sp-path
   "Generates a specter path from ironhide path"
-  ([path] (path->sp-path {} path :get))
+  ([path] (path->sp-path {} path :set))
   ([path pmode] (path->sp-path {} path pmode))
   ([ctx path pmode]
    (reduce
     (fn [acc [pelem next-pelem]]
-      (concat acc (pelems->specter pelem next-pelem)))
+      (concat acc (pelems->specter ctx pelem next-pelem pmode)))
     []
     (partition 2 1 [nil] path))))
 
