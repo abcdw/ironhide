@@ -1,5 +1,5 @@
 {:deps {org.clojure/clojurescript {:mvn/version "1.10.339"}
-        healthsamurai/ironhide    {:mvn/version "0.3.2"}
+        healthsamurai/ironhide    {:mvn/version "0.3.3"}
         reagent                   {:mvn/version "0.8.1"}}
  :aliases
  {:nrepl {:main-opts ["-e" "(require,'cider-nrepl.main)(require,'spyscope.core)(cider-nrepl.main/init,[\"refactor-nrepl.middleware/wrap-refactor\",\"cider.nrepl/cider-middleware\"])"]
