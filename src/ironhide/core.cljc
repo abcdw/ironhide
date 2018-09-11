@@ -135,6 +135,12 @@
     [#(if % (cstr/split % (re-pattern separator)) [])
      #(cstr/join separator %)]))
 
+(defmethod get-global-sight :ihs/uuid<->identity [key args & [ctx]]
+  [(fn [x]
+     #?(:clj  (java.util.UUID/randomUUID)
+        :cljs (random-uuid)))
+   identity])
+
 (defn- get-scoped-sight [{{sights :sights} :ih/internals :as ctx} key args]
   (if (contains? sights key)
     (key sights)
@@ -481,7 +487,7 @@
   (->
    (execute shell)
    :ih/data
-   (#(get % key))))
+   (#(get % (if key key (last (:ih/direction shell)))))))
 
 
 ;; TODO: Make value accept one path????

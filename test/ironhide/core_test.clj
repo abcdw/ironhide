@@ -504,3 +504,21 @@
     :ih/data
     :fhir
     )))
+
+
+(deftest uuid-sight-test
+  (matcho/assert
+   ^:matcho/strict [uuid? uuid? 3]
+   (get-data
+    #:ih{:data      {:right [1 2 3]
+                     :left  [4 5]}
+         :direction [:left :right]
+         ;; :direction [:right :left]
+         :rules     [{:left     [[:*] :ihs/uuid<->identity]
+                      :right    [[:*]]}]})))
+
+
+;; (defmethod get-global-sight :ihs/read-only [key args & [ctx]]
+;;   [(fn [x] {:value        x
+;;            :backup-value x})
+;;    (fn [x] (:backup-value x)])
