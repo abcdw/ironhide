@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Ironhide, the data transformer</title>
+
+		<meta name="description" content="language agnostic bidirectional data-driven transformation dsl for fun and profit">
+		<meta name="author" content="Andrew Tropin">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Ironhide</h1>
+					<h4>The data transformer</h4>
+					<p>
+						<small>Created by <a href="https://github.com/abcdw">Andrew Tropin</a> and <a href="https://github.com/healthsamurai/ironhide/graphs/contributors">contributors</a></small>
+					</p>
+				</section>
+
+        <section>
+          <h2>Content</h2>
+					<ol>
+						<li>Introduction</li>
+						<li>Solution description</li>
+						<li>Implementation details</li>
+					</ol>
+        </section>
+
+        <section>
+          <h1>Introduction</h1>
+        </section>
+
+        <section>
+          <h2>What is data?</h2>
+	        <p class="fragment">In our case it's a tree-like set of nodes,</p>
+	        <p class="fragment">anything isomorphic to json/xml</p>
+        </section>
+
+        <section>
+          <h2>Problem</h2>
+          Different systems have different data models and it's often necessary
+          to keep data in sync
+        </section>
+
+        <section>
+          <h2>Who affected?</h2>
+          <p>Interaction<p>
+					<ul>
+						<li class="fragment">between frontend and backend</li>
+						<li class="fragment">with external/legacy system</li>
+						<li class="fragment">of different technologies</li>
+						<li class="fragment">...</li>
+					</ul>
+        </section>
+
+        <section>
+          <h2>Example</h2>
+          <p>fronted:</p>
+				  <pre><code class="hljs" data-trim contenteditable>
+
+        {"name" : "Alexander Ivanovich"}
+
+				  </code></pre>
+          <p>backend:</p>
+				  <pre><code class="hljs" data-trim contenteditable>
+{
+  "name": {
+    "given": [
+      "Alexander"
+    ],
+    "family": "Ivanovich"
+  }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Existing solutions</h2>
+					<ul>
+						<li class="fragment">Programming languages (python, clojure, etc) </li>
+						<li class="fragment">DSLs (selmer, xslt, boomerang)</li>
+						<li class="fragment">Libraries and utilities (awk, sed, hadoop)</li>
+					</ul>
+        </section>
+
+        <section>
+          <h2>Example</h2>
+				  <pre><code class="hljs" data-trim contenteditable>
+<ul>
+{% for item in items %}
+    <li>{{item}}</li>
+{% endfor %}
+</ul>
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Similarities</h2>
+					<ul>
+						<li class="fragment">data</li>
+						<li class="fragment">language</li>
+						<li class="fragment">runtime</li>
+					</ul>
+        </section>
+
+        <section>
+          <h2>Objectives</h2>
+          Create a language with following properties:
+					<ul>
+						<li class="fragment">bidirectional</li>
+						<li class="fragment">data-driven</li>
+						<li class="fragment">runtime agnostic</li>
+					</ul>
+        </section>
+
+        <section>
+          <h1>Solution description</h1>
+        </section>
+
+        <section>
+          <h2>Paths</h2>
+        </section>
+
+        <section>
+          <h2>Rules</h2>
+        </section>
+
+        <section>
+          <h2>Micros</h2>
+        </section>
+
+        <section>
+          <h2>Values</h2>
+        </section>
+
+        <section>
+          <h2>Sights</h2>
+        </section>
+
+        <section>
+          <h2>Demo time</h2>
+        </section>
+
+
+				<!-- <section> -->
+        <!-- <iframe class="stretch" src="https://healthsamurai.github.io/ironhide/"></iframe>  -->
+        <!-- </section> -->
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
+        </section>
+
+
+
+        <section>
+          <h1>Implementation details</h1>
+        </section>
+
+        <section>
+          <h2>Grammar and validation</h2>
+        </section>
+
+        <section>
+          <h2>Grammar and validation</h2>
+        </section>
+
+        <section>
+          <!-- <img src="https://user-images.githubusercontent.com/1218615/43453962-374b7d44-94c4-11e8-83c2-5d9c703fce36.png"> -->
+          <h2>Question?</h2>
+        </section>
+      </div>
+    </div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+          controls: false,
+          /* progress: false, */
+          history: true,
+          center: true,
+          slideNumber: true,
+        dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
