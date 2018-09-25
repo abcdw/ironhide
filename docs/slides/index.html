@@ -137,10 +137,36 @@
 
         <section>
           <h2>Paths</h2>
+          Addressing the element
+
+				  <pre><code class="hljs" data-trim contenteditable>
+[:name [0] :given [0]]
+
+[:telecom [:* {:system "phone"}] :value]
+
+;; {:name "Firstname Secondname"}
+[:name :ihs/str<->vector [0]] ;; => [["Firstname"]]
+          </code></pre>
         </section>
 
         <section>
           <h2>Rules</h2>
+
+				  <pre><code class="hljs" data-trim contenteditable>
+          :rules [{:form [:ihm/name<->vector [0]]
+                   :fhir [:name [0] :given [0]]}
+
+                  {:form [:ihm/name<->vector [1]]
+                   :fhir [:name [0] :family]}
+
+                  {:ih/value {:fhir [:default-gender]}
+                   :fhir [:gender]}]
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Multi-dimensional figures</h2>
+
         </section>
 
         <section>
@@ -153,6 +179,11 @@
 
         <section>
           <h2>Sights</h2>
+					<ul>
+						<li class="fragment">str<->ast</li>
+						<li class="fragment">camel<->kebab</li>
+						<li class="fragment">suitable?</li>
+					</ul>
         </section>
 
         <section>
@@ -174,16 +205,26 @@
         </section>
 
         <section>
-          <h2>Grammar and validation</h2>
+          <h2>Grammar and syntax validation</h2>
         </section>
 
         <section>
-          <h2>Grammar and validation</h2>
+          <h2>Interpreter</h2>
+        </section>
+
+        <section>
+          <h2>Micros</h2>
+        </section>
+
+        <section>
+          <h2>Sights</h2>
         </section>
 
         <section>
           <!-- <img src="https://user-images.githubusercontent.com/1218615/43453962-374b7d44-94c4-11e8-83c2-5d9c703fce36.png"> -->
           <h2>Question?</h2>
+          <p>@andrewtropin</p>
+          <a href="https://github.com/abcdw">https://github.com/abcdw</p>
         </section>
       </div>
     </div>
