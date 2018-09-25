@@ -10,7 +10,7 @@ Ironhide, the data transformer.
 
 ## Idea
 
-Create a language agnostic bidirectional data-driven transformation [dsl](https://en.wikipedia.org/wiki/Domain-specific_language) for fun and profit.
+Create a runtime agnostic bidirectional data-driven transformation [dsl](https://en.wikipedia.org/wiki/Domain-specific_language) for fun and profit.
 
 ### Problem
 
