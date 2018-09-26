@@ -89,18 +89,18 @@
           <p>fronted:</p>
 				  <pre><code class="hljs" data-trim contenteditable>
 
-        {"name" : "Alexander Ivanovich"}
+        {"name" : "Alexander Ivanov"}
 
 				  </code></pre>
           <p>backend:</p>
 				  <pre><code class="hljs" data-trim contenteditable>
 {
-  "name": {
+  "name": [{
     "given": [
       "Alexander"
     ],
-    "family": "Ivanovich"
-  }
+    "family": "Ivanov"
+  }]
 }
           </code></pre>
         </section>
@@ -159,6 +159,27 @@
           <h1>Solution description</h1>
         </section>
 
+
+        <section>
+          <h2>Rules</h2>
+          The heart of transformation
+
+				  <pre><code class="hljs" data-trim contenteditable>
+          :rules [{:form [:ihm/name<->vector [0]]
+                   :fhir [:name [0] :given [0]]}
+
+                  {:form [:ihm/name<->vector [1]]
+                   :fhir [:name [0] :family]}
+
+                  {:ih/value {:fhir [:default-gender]}
+                   :fhir [:gender]}]
+          </code></pre>
+        </section>
+
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
+        </section>
+
         <section>
           <h2>Paths</h2>
           <p>Addressing the element</p>
@@ -182,20 +203,8 @@
 	        </aside>
         </section>
 
-        <section>
-          <h2>Rules</h2>
-          The heart of transformation
-
-				  <pre><code class="hljs" data-trim contenteditable>
-          :rules [{:form [:ihm/name<->vector [0]]
-                   :fhir [:name [0] :given [0]]}
-
-                  {:form [:ihm/name<->vector [1]]
-                   :fhir [:name [0] :family]}
-
-                  {:ih/value {:fhir [:default-gender]}
-                   :fhir [:gender]}]
-          </code></pre>
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
         </section>
 
         <section>
@@ -219,6 +228,10 @@
 
         </section>
 
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
+        </section>
+
         <section>
           <h2>Micros</h2>
           Do <b>not</b> copypaste
@@ -231,6 +244,10 @@
            [{:ih/micro :ihm/name :index 10}])
           ;; => [:name [10] :given [0]]
           </code></pre>
+        </section>
+
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
         </section>
 
         <section>
@@ -246,6 +263,10 @@
                         :ih/value {:form-2 [:ih/values :person/name]}}]}
 
           </code></pre>
+        </section>
+
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
         </section>
 
         <section>
@@ -279,17 +300,17 @@
 	        </aside>
         </section>
 
-        <section>
-          <h2>Demo time</h2>
+        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
+          <!-- <h2>Iframe</h2> -->
         </section>
 
 
 				<!-- <section> -->
         <!-- <iframe class="stretch" src="https://healthsamurai.github.io/ironhide/"></iframe>  -->
         <!-- </section> -->
-        <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive>
-          <!-- <h2>Iframe</h2> -->
-        </section>
+        <!-- <section data-background-iframe="https://healthsamurai.github.io/ironhide/" data-background-interactive> -->
+        <!-- <h2>Iframe</h2> -->
+        <!-- </section> -->
 
 
 
@@ -299,11 +320,20 @@
 
         <section>
           <h2>Validation</h2>
-          <ul>
-            <li class="fragment">lexing</li>
-            <li class="fragment">parsing</li>
-            <li class="fragment">lexing</li>
-          </ul>
+
+				  <pre><code class="hljs" data-trim contenteditable>
+          (s/def ::path (s/coll-of ::pelem))
+          (s/def ::pelem (s/or :mkey ::mkey :sight ::sight :vnav ::vnav))
+          (s/def ::mkey keyword?)
+          (s/def ::sight sight?)
+          (s/def ::vnav
+          (s/cat :vkey ::vkey :vfilter (s/? ::vfilter)))
+
+          (s/def ::vkey (s/or :index ::index :wildcard ::wildcard))
+          (s/def ::wildcard #(= :* %))
+          (s/def ::index nat-int?)
+          (s/def ::vfilter map?)
+          </code></pre>
 
 	        <aside class="notes">
             common order: lexing->syntactic->parsing
@@ -320,8 +350,7 @@
 
         <section>
           <h2>Micros</h2>
-          <img src="https://user-images.githubusercontent.com/1218615/46083560-5f2a2a00-c1aa-11e8-8000-7aea0d6a3af7.jpg">
-          <img src="https://user-images.githubusercontent.com/1218615/46083560-5f2a2a00-c1aa-11e8-8000-7aea0d6a3af7.jpg">
+          <img src="https://user-images.githubusercontent.com/1218615/46088776-cf8a7880-c1b5-11e8-844a-88be63e436ea.jpg">
         </section>
 
         <section>
@@ -337,6 +366,7 @@
           <h2>Question?</h2>
           <p>@andrewtropin</p>
           <a href="https://github.com/abcdw">https://github.com/abcdw</p>
+            <a href="https://github.com/healthsamurai/ironhide">healthsamurai/ironhide</p>
         </section>
       </div>
     </div>
