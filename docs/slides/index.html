@@ -75,6 +75,7 @@
         <section>
           <h2>Who affected?</h2>
           <p>Interaction<p>
+
 					<ul>
 						<li class="fragment">between frontend and backend</li>
 						<li class="fragment">with external/legacy system</li>
@@ -115,6 +116,8 @@
 
         <section>
           <h2>Example</h2>
+          Selmer:
+
 				  <pre><code class="hljs" data-trim contenteditable>
 <ul>
 {% for item in items %}
@@ -158,7 +161,7 @@
 
         <section>
           <h2>Paths</h2>
-          Addressing the element
+          <p>Addressing the element</p>
 
 				  <pre><code class="hljs" data-trim contenteditable>
 [:name [0] :given [0]]
@@ -168,10 +171,20 @@
 ;; {:name "Firstname Secondname"}
 [:name :ihs/str<->vector [0]] ;; => [["Firstname"]]
           </code></pre>
+	        <aside class="notes">
+            Similar to XPath, jpath.
+            key,
+            vnav,
+            vkey,
+            vfilter,
+            sight,
+            micro
+	        </aside>
         </section>
 
         <section>
           <h2>Rules</h2>
+          The heart of transformation
 
 				  <pre><code class="hljs" data-trim contenteditable>
           :rules [{:form [:ihm/name<->vector [0]]
@@ -186,7 +199,8 @@
         </section>
 
         <section>
-          <h2>Multi-dimensional figures</h2>
+          <h2>Multidimensional figures</h2>
+
           <div class="image-box" style="text-align:left;">
           <img src="https://user-images.githubusercontent.com/1218615/46072522-44948880-c18b-11e8-83e2-54e2050e22b7.png" height="200px">
           <img src="https://user-images.githubusercontent.com/1218615/46072523-44948880-c18b-11e8-9dd1-3d0a529e585a.png" height="200px">
@@ -195,7 +209,7 @@
         </section>
 
         <section>
-          <h2>Multi-dimensional figures</h2>
+          <h2>Multidimensional figures</h2>
           <div style="text-align:left;">
           <img src="https://user-images.githubusercontent.com/1218615/46072522-44948880-c18b-11e8-83e2-54e2050e22b7.png" height="140px" style="padding-right:40px;">
 
@@ -207,10 +221,31 @@
 
         <section>
           <h2>Micros</h2>
+          Do <b>not</b> copypaste
+
+				  <pre><code class="hljs" data-trim contenteditable>
+          (microexpand-path
+
+           {:ih/micros {:ihm/name [:name [:index] :given [0]]}}
+
+           [{:ih/micro :ihm/name :index 10}])
+          ;; => [:name [10] :given [0]]
+          </code></pre>
         </section>
 
         <section>
           <h2>Values</h2>
+          Missing some data?(
+
+				  <pre><code class="hljs" data-trim contenteditable>
+
+          {:ih/values {:person/name "Name not provided by the form"}
+
+           :ih/rules  [{:form     [:name]
+                        :form-2   [:fullname]
+                        :ih/value {:form-2 [:ih/values :person/name]}}]}
+
+          </code></pre>
         </section>
 
         <section>
@@ -220,6 +255,28 @@
 						<li class="fragment">camel<->kebab</li>
 						<li class="fragment">suitable?</li>
 					</ul>
+        </section>
+
+        <section>
+          <h2>Sights</h2>
+          xml<->ast sight example
+
+				  <pre><code class="hljs" data-trim contenteditable>
+          <ul>
+            <li class="cl">str<->ast</li>
+            <li class="cl">camel<->kebab</li>
+            <li class="cl">suitable?</li>
+          </ul>
+
+          {"ul":
+           {"li": [{"-class": "cl", "#text": "str<->ast"},
+                   {"-class": "cl", "#text": "camel<->kebab"},
+                   {"-class": "cl", "#text": "suitable?"}]}}
+          </code></pre>
+
+	        <aside class="notes">
+            sed config before deploy
+	        </aside>
         </section>
 
         <section>
@@ -241,19 +298,38 @@
         </section>
 
         <section>
-          <h2>Grammar and syntax validation</h2>
+          <h2>Validation</h2>
+          <ul>
+            <li class="fragment">lexing</li>
+            <li class="fragment">parsing</li>
+            <li class="fragment">lexing</li>
+          </ul>
+
+	        <aside class="notes">
+            common order: lexing->syntactic->parsing
+
+            parser and lexer already written for edn/json
+
+	        </aside>
         </section>
 
         <section>
           <h2>Interpreter</h2>
+          <img src="https://user-images.githubusercontent.com/1218615/46083560-5f2a2a00-c1aa-11e8-8000-7aea0d6a3af7.jpg">
         </section>
 
         <section>
           <h2>Micros</h2>
+          <img src="https://user-images.githubusercontent.com/1218615/46083560-5f2a2a00-c1aa-11e8-8000-7aea0d6a3af7.jpg">
+          <img src="https://user-images.githubusercontent.com/1218615/46083560-5f2a2a00-c1aa-11e8-8000-7aea0d6a3af7.jpg">
         </section>
 
         <section>
           <h2>Sights</h2>
+          <ul>
+            <li class="fragment">multimethods</li>
+            <li class="fragment">closures</li>
+          </ul>
         </section>
 
         <section>
@@ -279,9 +355,9 @@
           center: true,
           slideNumber: true,
         dependencies: [
-					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
+					  { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					  /* { src: 'plugin/markdown/marked.js' }, */
+					  /* { src: 'plugin/markdown/markdown.js' }, */
 					{ src: 'plugin/notes/notes.js', async: true },
 					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
