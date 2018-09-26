@@ -13,7 +13,7 @@
 		<link rel="stylesheet" href="css/theme/white.css">
 
 		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+		<link rel="stylesheet" href="lib/css/tomorrow.css">
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -33,6 +33,11 @@
 					<p>
 						<small>Created by <a href="https://github.com/abcdw">Andrew Tropin</a> and <a href="https://github.com/healthsamurai/ironhide/graphs/contributors">contributors</a></small>
 					</p>
+
+	        <aside class="notes">
+            Who am I?
+            How I related to fp?
+	        </aside>
 				</section>
 
         <section>
@@ -46,11 +51,14 @@
 
         <section>
           <h1>Introduction</h1>
+	        <aside class="notes">
+            Know your audience (type system, technologies)
+	        </aside>
         </section>
 
         <section>
           <h2>What is data?</h2>
-	        <p class="fragment">In our case it's a tree-like set of nodes,</p>
+	        <p class="fragment">In our case it's a tree-like structure,</p>
 	        <p class="fragment">anything isomorphic to json/xml</p>
         </section>
 
@@ -58,6 +66,10 @@
           <h2>Problem</h2>
           Different systems have different data models and it's often necessary
           to keep data in sync
+
+	        <aside class="notes">
+            Why this idea appeared?
+	        </aside>
         </section>
 
         <section>
@@ -113,12 +125,17 @@
         </section>
 
         <section>
-          <h2>Similarities</h2>
+          <h2>Solutions similarities</h2>
+          <p>They all have:</p>
 					<ul>
 						<li class="fragment">data</li>
 						<li class="fragment">language</li>
 						<li class="fragment">runtime</li>
 					</ul>
+
+	        <aside class="notes">
+            Why language and interpreter were developed?
+	        </aside>
         </section>
 
         <section>
@@ -129,6 +146,10 @@
 						<li class="fragment">data-driven</li>
 						<li class="fragment">runtime agnostic</li>
 					</ul>
+
+	        <aside class="notes">
+            Why they are important?
+	        </aside>
         </section>
 
         <section>
@@ -166,6 +187,21 @@
 
         <section>
           <h2>Multi-dimensional figures</h2>
+          <div class="image-box" style="text-align:left;">
+          <img src="https://user-images.githubusercontent.com/1218615/46072522-44948880-c18b-11e8-83e2-54e2050e22b7.png" height="200px">
+          <img src="https://user-images.githubusercontent.com/1218615/46072523-44948880-c18b-11e8-9dd1-3d0a529e585a.png" height="200px">
+
+          </div>
+        </section>
+
+        <section>
+          <h2>Multi-dimensional figures</h2>
+          <div style="text-align:left;">
+          <img src="https://user-images.githubusercontent.com/1218615/46072522-44948880-c18b-11e8-83e2-54e2050e22b7.png" height="140px" style="padding-right:40px;">
+
+          <img src="https://user-images.githubusercontent.com/1218615/46072523-44948880-c18b-11e8-9dd1-3d0a529e585a.png" height="140px">
+          <img src="https://user-images.githubusercontent.com/1218615/46072524-44948880-c18b-11e8-8174-f6277865be4d.png">
+          </div>
 
         </section>
 
@@ -243,6 +279,7 @@
           center: true,
           slideNumber: true,
         dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
 					{ src: 'plugin/markdown/marked.js' },
 					{ src: 'plugin/markdown/markdown.js' },
 					{ src: 'plugin/notes/notes.js', async: true },
