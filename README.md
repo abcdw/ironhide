@@ -81,9 +81,9 @@ Full grammar defined using `clojure.spec` in [core](./src/ironhide/core.cljc#L26
 
 ## Usage
 
-This section contains examples of clojure ironhide interpreter usage with little
-explanation, to get the taste of dsl capabilities. More detailed info provided
-in [Description](#description) section.
+This section contains examples of clojure ironhide interpreter usage with a
+little explanation, to get the taste of dsl capabilities. More detailed info
+provided in [Description](#description) section.
 
 Add to `:deps` in **deps.edn**:
 
@@ -99,7 +99,6 @@ healthsamurai/ironhide {:mvn/version "RELEASE"}
   
 ;; (ih/execute shell)
 ;; (ih/get-data shell)
-;; (ih/get-data shell :charge1)
 ```
 
 ### Field to field mapping
@@ -210,7 +209,7 @@ See [Sight](#sight) section for the detailed explanation.
 ;; => {:name "First, Family"}
 ```
 
-Add parametrized micro.
+Micros can be parametrized in the same way as sights.
 
 ## Description
 
@@ -237,38 +236,11 @@ Simple `shell` executed with `get-data`:
 ;; => {:form {:first-name "Firstname"}, :fhir {:name [{:given ["Firstname"]}]}}
 ```
 
-### Bullet
-
-A `bullet` is any leaf value (map or vector also can be treated as a leaf
-value).
-
-```clj
-;; {:k1 {:k2 :v3}}
-[:k1] ;; => [[{:k2 :v3}]]
-;; {:k2 :v3} is a bullet
-```
-
-### Charge
-
-A `charge` is logical name (keyword) of the part of subtree inside the `shell`
-most often under the `:ih/data` key.
-
-Source `charge` in `:ih/direction` is used for getting `bullet`s and sink
-`charge` for updating/creating.
-
-```clj
-
-#:ih{:direction [:form :fhir]
-     :data      {:form {:first-name "Firstname"}
-                 :fhir {}}}
-
-;; :form and :fhir are charges
-```
-
 ### Path and pelem
 
-`Path` is a vector consist of `pelem`s, which describes how to get to
-`bullet`s. Something similar to [XPath](https://en.wikipedia.org/wiki/XPath),
+`Path` is a vector consist of `pelem`s (path elements), which describes how to
+get to some node in `data-source`s. Something similar to
+[XPath](https://en.wikipedia.org/wiki/XPath),
 [JsonPath](http://goessner.net/articles/JsonPath/), but not exactly.
 
 There are few types of `pelem`s:
@@ -311,34 +283,33 @@ Example of paths and `get-values` results:
 ;; [[1 2] [3 4 5]]
 ```
 
-`get-values` always returns a magazine (vector of addressed) `bullet`s. Each
-`wildcard` inside the path creates one dimension of address. Source and sink
-path should have same number of `wildcard`s to make transformation possible.
-`ironhide` interpreter will align the shape automatically (without deleting
-existing data).
+`get-values` always returns a vector of indexed values. Each `wildcard` inside
+the path creates one dimension of index. Source and sink path should have same
+number of `wildcard`s to make transformation possible. `ironhide` interpreter
+will align the shape automatically (without deleting existing data).
 
 ```clj
 (get-values
  [[:v1 :v2] [:v3 :v4 :v5]]
  [[:*] [:*]])
 ;; => [[0 0 :v1] [0 1 :v2] [1 0 :v3] [1 1 :v4] [1 2 :v5]]
-;; the result of get-values is a magazine
-;; 1 2 - is a multi-dimensional address
-;; :v5 is a bullet
+;; the result of get-values is a vector of indexed values
+;; 1 2 - is a multi-dimensional index
 ```
 
 ### Sight
 
-`sight` is a special `pelem`, which allows to percieve `bullet` differently.
-It's useful when you want to treat a string as a vector of words for example:
+`sight` is a special type of `pelem`, which allows to percieve current node of
+`data-source` differently. It's useful when you want to treat a string as a
+vector of words for example:
 
 ```clj
 ;; {:name "Firstname Secondname"}
 [:name :ihs/str<->vector [0]] ;; => [["Firstname"]]
 ```
 
-It allows to navigate inside `bullet` differently and more preciesly, but don't
-change original structure of it.
+It allows to navigate inside node of `data-source` differently and more
+preciesly, but don't change original structure of it.
 
 It's possible to extend sights by [defining](./src/ironhide/core.cljc#L133)
 `ironhide.core/get-global-sight` method or using
@@ -366,12 +337,12 @@ Default values for micros not supported yet.
 
 ### Rule
 
-Rule specifies relation between `bullet`s. It is a map, which can contain few
-different key types:
+Rule specifies relation between parts of `data-source`s. It is a map, which can
+contain few different key types:
 
-* `charge`, which associated with path to `bullet`
-* `:ih/direction`, which associated with a pair of source and sink `charge`s
-* `:ih/defaults`, which associated with map of `charge` keys and
+* `data-source` name, which associated with path to exact part of `data-source`
+* `:ih/direction`, which associated with a pair of source and sink `data-source`s
+* `:ih/defaults`, which associated with map of `data-source` name keys and
   path-to-default-value values
 
 ```clj

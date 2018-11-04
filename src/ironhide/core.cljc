@@ -28,7 +28,7 @@
           :opt [:ih/data :ih/sights :ih/micros :ih/values]))
 
 (s/def :ih/rules (s/coll-of ::rule))
-(s/def :ih/direction (s/cat :from ::charge :to ::charge))
+(s/def :ih/direction (s/cat :from ::data-source :to ::data-source))
 (s/def :ih/sights (s/map-of #(= "ihs" (namespace %)) ::nested-sight))
 
 (s/def ::map-sight
@@ -40,19 +40,19 @@
 
 (s/def ::rule (s/coll-of
                (s/or
-                :charge
-                (s/tuple ::charge ::path)
+                :data-source
+                (s/tuple ::data-source ::path)
                 :ih/value
-                (s/tuple #(= :ih/value %) ::charge->path))
+                (s/tuple #(= :ih/value %) ::data-source->path))
                :into []
                :min-count 2
                :max-count 3))
 
-(s/def ::charge->path
-  (s/map-of ::charge ::path))
-(s/def :ih/value ::charge->path)
+(s/def ::data-source->path
+  (s/map-of ::data-source ::path))
+(s/def :ih/value ::data-source->path)
 
-(s/def ::charge keyword?)
+(s/def ::data-source keyword?)
 
 (s/def ::pmode #{:get :set})
 (s/def ::path (s/coll-of ::pelem))
