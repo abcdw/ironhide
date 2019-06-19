@@ -154,6 +154,11 @@
       (assoc-in [:ih/direction] (or direction [:source :sink]))
       (get-data (if direction to :sink))))
 
+(deftest false-not-nil-test
+  (matcho/assert
+   {:a false}
+   (set-values {} [:a] [[false]])))
+
 (deftest nested-collection-transform-test
   (matcho/assert
    {:b [{:c [{:k :v1}] :d :t1}

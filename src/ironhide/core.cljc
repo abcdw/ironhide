@@ -283,12 +283,16 @@
      sp-path
      (fn [& v]
        (let [path  (butlast v)
+             old-value (last v)
              new-value (values path)
-             old-value (last v)]
-         (if (and (map? new-value)
-                  (map? old-value))
-           (deep-merge old-value new-value)
-           (or new-value old-value))))
+
+             result
+             (if (and (map? new-value)
+                      (map? old-value))
+               (deep-merge old-value new-value)
+               (if (some? new-value)
+                 new-value old-value))]
+         result))
      ctx)))
 
 (defn- get-templates [path]
@@ -339,7 +343,7 @@
   (let [wc?        (wildcard? (last path))
         ;; FIXME: it always has to be wc, isn't it?
         first-part (butlast path)
-        wcs?       (has-wildcards? first-part) 
+        wcs?       (has-wildcards? first-part)
         vfilter-fn (get-vfilter-fn (if wc? (second (last path))))
 
         insert-path
