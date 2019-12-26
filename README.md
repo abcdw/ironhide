@@ -56,7 +56,7 @@ much harder to keep *f <sup>-1</sup>* in sync with *f*.
 
 ### Solution
 
-[ironhide](https://github.com/abcdw/ironhide) is attempt to create a
+[ironhide](https://github.com/abcdw/ironhide) is an attempt to create a
 bidirectional data transformation language described by a data structure stored
 in [EDN](https://github.com/edn-format/edn) (you can think about edn like a
 better [JSON](https://json.org/)). `ironhide` still in early stage of
@@ -96,7 +96,7 @@ healthsamurai/ironhide {:mvn/version "RELEASE"}
 ```clj
 (ns hello-world.core
   (:require [ironhide.core :as ih]))
-  
+
 ;; (ih/execute shell)
 ;; (ih/get-data shell)
 ```
@@ -261,7 +261,7 @@ There are few types of `pelem`s:
 
 Full grammar defined in [core](./src/ironhide/core.cljc#L26) namespace.
 
-Example of paths and `get-values` results: 
+Example of paths and `get-values` results:
 
 ```clj
 
@@ -318,7 +318,7 @@ It's possible to extend sights by [defining](./src/ironhide/core.cljc#L133)
 
 ### Micro
 
-`micro` is a parametrized shortcut for part of the path. 
+`micro` is a parametrized shortcut for part of the path.
 
 ```clj
 (microexpand-path
